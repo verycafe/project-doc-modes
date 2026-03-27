@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Doc Modes"
+  short_description: "Ask short setup questions, confirm role boundaries, then scaffold repo docs with Chinese or English labels."
+  default_prompt: "Use $project-doc-modes to inspect this repository, ask one or two short setup questions at a time, confirm the current role and edit boundaries when collaboration mode is used, then scaffold the docs."
