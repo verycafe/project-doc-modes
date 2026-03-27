@@ -2,6 +2,8 @@
 
 [English](README.md)
 
+[快速开始](#快速开始) · [模式对比](#模式对比) · [仓库内容](#仓库内容)
+
 `project-doc-modes` 是一个用于搭建、整理和迁移仓库文档治理结构的 Codex Skill。
 
 它支持两种主要模式：
@@ -18,6 +20,22 @@
 - 支持中文和英文两种语言模式
 - 默认保留现有代码目录，不随意移动代码
 - 生成当前入口、治理文档、交接文档和归档结构
+
+## 快速开始
+
+你可以在 Codex 里直接这样触发：
+
+```text
+Use $project-doc-modes to inspect this repository, ask one or two short setup questions at a time, confirm the needed context, then scaffold the docs.
+```
+
+```text
+Use $project-doc-modes to set up this repository in collaboration mode and keep the docs in Chinese.
+```
+
+```text
+Use $project-doc-modes to migrate this repository to iterative mode and make docs/product/v0.1 the current source of truth.
+```
 
 ## 模式
 
@@ -45,6 +63,17 @@
 - `docs/product/CURRENT.md`
 - `docs/product/vX.Y/` 下的版本化文档
 - `archive/`
+
+## 模式对比
+
+| 维度 | 协作模式 | 迭代模式 |
+| --- | --- | --- |
+| 适合场景 | 多角色拆分协作 | 单产品持续推进 |
+| 主要关注点 | ownership 边界与 handoff | 当前版本与 archive 流程 |
+| 核心结构 | 角色指南、状态文档、交接文档 | `docs/product/` 下的版本化文档 |
+| 当前入口 | 面向角色的当前工作文档 | 唯一当前版本入口 |
+| 约束方式 | 每个角色的可编辑 / 只读 / 禁止编辑路径 | 只有一个 current，archive 只存历史 |
+| 典型提问顺序 | 模式、角色、阶段文档、编辑边界、语言 | 模式、版本/阶段、语言、current/archive 结构 |
 
 ## 语言模式
 

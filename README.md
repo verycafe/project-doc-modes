@@ -2,6 +2,8 @@
 
 [中文说明](README.zh-CN.md)
 
+[Quick Start](#quick-start) · [Mode Comparison](#mode-comparison) · [Repository Contents](#repository-contents)
+
 `project-doc-modes` is a Codex skill for scaffolding, reorganizing, and migrating repository documentation into one of two operating styles:
 
 - `collaboration mode`: role-split ownership, handoff docs, edit boundaries, and role-specific working rules
@@ -16,6 +18,22 @@ It is designed to ask a few short setup questions first, then generate the right
 - Supports both Chinese and English for prompts, labels, and generated Markdown
 - Preserves existing code directories unless the user explicitly asks to move them
 - Builds current-entry docs, governance files, handoff docs, and archive structure
+
+## Quick Start
+
+Use one of these prompts in Codex:
+
+```text
+Use $project-doc-modes to inspect this repository, ask one or two short setup questions at a time, confirm the needed context, then scaffold the docs.
+```
+
+```text
+Use $project-doc-modes to set up this repository in collaboration mode and keep the docs in English.
+```
+
+```text
+Use $project-doc-modes to migrate this repository to iterative mode and make docs/product/v0.1 the current source of truth.
+```
 
 ## Modes
 
@@ -43,6 +61,17 @@ Typical outputs:
 - `docs/product/CURRENT.md`
 - versioned product docs under `docs/product/vX.Y/`
 - `archive/`
+
+## Mode Comparison
+
+| Topic | Collaboration Mode | Iterative Mode |
+| --- | --- | --- |
+| Best for | Role-split teams | One shared product flow |
+| Primary focus | Ownership boundaries and handoffs | Current version and archive flow |
+| Main structure | Role guides, status docs, handoff docs | Versioned docs under `docs/product/` |
+| Current entrypoint | Role-specific working docs | One active version marked current |
+| Boundary rules | Editable / read-only / forbidden paths by role | One current version, archive is historical only |
+| Typical question flow | Mode, role, phase doc, edit boundaries, language | Mode, version/phase, language, archive/current setup |
 
 ## Language Support
 
