@@ -2,7 +2,7 @@
 
 [中文说明](README.zh-CN.md)
 
-[Quick Start](#quick-start) · [Mode Comparison](#mode-comparison) · [Repository Contents](#repository-contents)
+[Quick Start](#quick-start) · [Mode Comparison](#mode-comparison) · [Example Scenarios](#example-scenarios) · [Repository Contents](#repository-contents)
 
 `project-doc-modes` is a Codex skill for scaffolding, reorganizing, and migrating repository documentation into one of two operating styles:
 
@@ -72,6 +72,26 @@ Typical outputs:
 | Current entrypoint | Role-specific working docs | One active version marked current |
 | Boundary rules | Editable / read-only / forbidden paths by role | One current version, archive is historical only |
 | Typical question flow | Mode, role, phase doc, edit boundaries, language | Mode, version/phase, language, archive/current setup |
+
+## Example Scenarios
+
+### Start an Empty Repository
+
+```text
+Use $project-doc-modes to inspect this empty repository, ask short setup questions in English, and scaffold it in iterative mode with v0.1 as the current version.
+```
+
+### Organize a Role-Split Repository
+
+```text
+Use $project-doc-modes to inspect this repository, confirm the current role and edit boundaries, then set it up in collaboration mode.
+```
+
+### Migrate Existing Docs Into a Versioned Flow
+
+```text
+Use $project-doc-modes to migrate this repository to iterative mode, keep current docs in Chinese, and move replaced material into archive.
+```
 
 ## Language Support
 

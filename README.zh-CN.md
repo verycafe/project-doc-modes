@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-[快速开始](#快速开始) · [模式对比](#模式对比) · [仓库内容](#仓库内容)
+[快速开始](#快速开始) · [模式对比](#模式对比) · [示例场景](#示例场景) · [仓库内容](#仓库内容)
 
 `project-doc-modes` 是一个用于搭建、整理和迁移仓库文档治理结构的 Codex Skill。
 
@@ -74,6 +74,26 @@ Use $project-doc-modes to migrate this repository to iterative mode and make doc
 | 当前入口 | 面向角色的当前工作文档 | 唯一当前版本入口 |
 | 约束方式 | 每个角色的可编辑 / 只读 / 禁止编辑路径 | 只有一个 current，archive 只存历史 |
 | 典型提问顺序 | 模式、角色、阶段文档、编辑边界、语言 | 模式、版本/阶段、语言、current/archive 结构 |
+
+## 示例场景
+
+### 初始化空仓库
+
+```text
+Use $project-doc-modes to inspect this empty repository, ask short setup questions in Chinese, and scaffold it in iterative mode with v0.1 as the current version.
+```
+
+### 整理多角色协作仓库
+
+```text
+Use $project-doc-modes to inspect this repository, confirm the current role and edit boundaries, then set it up in collaboration mode.
+```
+
+### 把现有文档迁移到版本化结构
+
+```text
+Use $project-doc-modes to migrate this repository to iterative mode, keep current docs in Chinese, and move replaced material into archive.
+```
 
 ## 语言模式
 
