@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-[快速开始](#快速开始) · [模式对比](#模式对比) · [示例场景](#示例场景) · [仓库内容](#仓库内容)
+[快速开始](#快速开始) · [模式对比](#模式对比) · [示例场景](#示例场景) · [测试](#测试) · [仓库内容](#仓库内容)
 
 `project-doc-modes` 是一套 Markdown-first 的仓库文档治理工作流，同时提供 Codex 和 Claude Code 两种入口，用来搭建、整理和迁移仓库文档结构。
 
@@ -191,9 +191,13 @@ python3 scripts/test_runtime_install.py
 - Codex：安装到 `~/.codex/skills/project-doc-modes` 后通过了 `quick_validate.py`，并且用 `codex exec` 成功触发了 `$project-doc-modes`
 - Claude Code：安装到临时仓库后，用 `claude -p` 成功触发了 `/project-doc-modes`
 
+完整测试说明见 [TESTING.zh-CN.md](TESTING.zh-CN.md)。
+
 ## 仓库内容
 
 - [SKILL.md](SKILL.md)：主工作流与提问规则
+- [TESTING.md](TESTING.md)：英文测试指南
+- [TESTING.zh-CN.md](TESTING.zh-CN.md)：中文测试指南
 - [CLAUDE.md](CLAUDE.md)：Claude Code 项目记忆入口
 - [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md)：Claude Code 项目级 slash command
 - [agents/openai.yaml](agents/openai.yaml)：界面展示信息与默认提示词

@@ -2,7 +2,7 @@
 
 [中文说明](README.zh-CN.md)
 
-[Quick Start](#quick-start) · [Mode Comparison](#mode-comparison) · [Example Scenarios](#example-scenarios) · [Repository Contents](#repository-contents)
+[Quick Start](#quick-start) · [Mode Comparison](#mode-comparison) · [Example Scenarios](#example-scenarios) · [Testing](#testing) · [Repository Contents](#repository-contents)
 
 `project-doc-modes` is a Markdown-first repository-doc workflow packaged for both Codex and Claude Code. It scaffolds, reorganizes, and migrates repository documentation into one of two operating styles:
 
@@ -189,9 +189,13 @@ Local end-to-end checks already run for this repository:
 - Codex: installed into `~/.codex/skills/project-doc-modes`, passed `quick_validate.py`, and successfully triggered via `codex exec` with `$project-doc-modes`
 - Claude Code: installed into a temporary repo and successfully triggered via `claude -p` with `/project-doc-modes`
 
+For the full testing guide, see [TESTING.md](TESTING.md).
+
 ## Repository Contents
 
 - [SKILL.md](SKILL.md): main workflow and prompting rules
+- [TESTING.md](TESTING.md): English testing guide
+- [TESTING.zh-CN.md](TESTING.zh-CN.md): Chinese testing guide
 - [CLAUDE.md](CLAUDE.md): Claude Code project memory entrypoint
 - [.claude/commands/project-doc-modes.md](.claude/commands/project-doc-modes.md): Claude Code project slash command
 - [agents/openai.yaml](agents/openai.yaml): UI metadata and default prompt
