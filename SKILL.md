@@ -385,4 +385,5 @@ Portability rules:
 - store the core workflow in `SKILL.md` and reference files
 - avoid assuming Codex-only APIs in the main logic
 - treat `agents/openai.yaml` as a Codex convenience layer, not the core of the skill
+- when exposing this workflow in Claude Code, point `CLAUDE.md` and any `.claude/commands/*.md` wrappers back to `SKILL.md` instead of forking the instructions
 - only add automation scripts later if repeated file generation becomes too mechanical

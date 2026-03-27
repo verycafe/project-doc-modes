@@ -4,7 +4,7 @@
 
 [Quick Start](#quick-start) · [Mode Comparison](#mode-comparison) · [Example Scenarios](#example-scenarios) · [Repository Contents](#repository-contents)
 
-`project-doc-modes` is a Codex skill for scaffolding, reorganizing, and migrating repository documentation into one of two operating styles:
+`project-doc-modes` is a Markdown-first repository-doc workflow packaged for both Codex and Claude Code. It scaffolds, reorganizes, and migrates repository documentation into one of two operating styles:
 
 - `collaboration mode`: role-split ownership, handoff docs, edit boundaries, and role-specific working rules
 - `iterative mode`: one active versioned source of truth, repo-wide governance docs, and archive-friendly version flow
@@ -18,8 +18,11 @@ It is designed to ask a few short setup questions first, then generate the right
 - Supports both Chinese and English for prompts, labels, and generated Markdown
 - Preserves existing code directories unless the user explicitly asks to move them
 - Builds current-entry docs, governance files, handoff docs, and archive structure
+- Works as a Codex skill and as a Claude Code slash command without forking the core workflow
 
 ## Quick Start
+
+### Codex
 
 Use one of these prompts in Codex:
 
@@ -34,6 +37,69 @@ Use $project-doc-modes to set up this repository in collaboration mode and keep 
 ```text
 Use $project-doc-modes to migrate this repository to iterative mode and make docs/product/v0.1 the current source of truth.
 ```
+
+### Claude Code
+
+This repository includes project memory in [`CLAUDE.md`](CLAUDE.md) and a project slash command at [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md).
+
+In Claude Code, open the repository and use:
+
+```text
+/project-doc-modes
+```
+
+You can also pass extra intent inline:
+
+```text
+/project-doc-modes migrate this repository to iterative mode and keep the docs in Chinese
+```
+
+## Install
+
+Use [`scripts/install_runtime.py`](scripts/install_runtime.py) when you want a runtime-specific install without copying the other runtime's wrapper files.
+
+### Install For Codex
+
+```bash
+python3 scripts/install_runtime.py ~/.codex/skills/project-doc-modes --runtime codex --force
+```
+
+After installing or updating a custom Codex skill, restart Codex so the app reloads the skills directory.
+
+Installed file set:
+- `SKILL.md`
+- `references/`
+- `agents/openai.yaml`
+
+Not installed:
+- `CLAUDE.md`
+- `.claude/commands/project-doc-modes.md`
+
+### Install For Claude Code
+
+```bash
+python3 scripts/install_runtime.py /path/to/your/repository --runtime claude --force
+```
+
+Installed file set:
+- `SKILL.md`
+- `references/`
+- `CLAUDE.md`
+- `.claude/commands/project-doc-modes.md`
+
+Not installed:
+- `agents/openai.yaml`
+
+### Auto-Detect The Runtime
+
+```bash
+python3 scripts/install_runtime.py /target/path --runtime auto
+```
+
+Auto-detection rules:
+- install as Codex when the target path looks like a Codex skill directory such as `~/.codex/skills/project-doc-modes`
+- install as Claude Code when the target looks like a repository root with `.git`, `.claude`, or `CLAUDE.md`
+- stop and ask for an explicit runtime when both environments exist and the target path is ambiguous
 
 ## Modes
 
@@ -106,10 +172,31 @@ The selected language affects:
 - generated Markdown headings and navigation text
 - active governance and current-entry docs
 
+## Runtime Support
+
+- Codex: use [`SKILL.md`](SKILL.md) with [`agents/openai.yaml`](agents/openai.yaml) as the UI convenience layer
+- Claude Code: use [`CLAUDE.md`](CLAUDE.md) and [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md) as thin wrappers around the same `SKILL.md`
+
+## Testing
+
+Run the cross-runtime smoke test to verify that the Codex and Claude installs both work and do not copy each other's wrapper files:
+
+```bash
+python3 scripts/test_runtime_install.py
+```
+
+Local end-to-end checks already run for this repository:
+- Codex: installed into `~/.codex/skills/project-doc-modes`, passed `quick_validate.py`, and successfully triggered via `codex exec` with `$project-doc-modes`
+- Claude Code: installed into a temporary repo and successfully triggered via `claude -p` with `/project-doc-modes`
+
 ## Repository Contents
 
 - [SKILL.md](SKILL.md): main workflow and prompting rules
+- [CLAUDE.md](CLAUDE.md): Claude Code project memory entrypoint
+- [.claude/commands/project-doc-modes.md](.claude/commands/project-doc-modes.md): Claude Code project slash command
 - [agents/openai.yaml](agents/openai.yaml): UI metadata and default prompt
+- [scripts/install_runtime.py](scripts/install_runtime.py): runtime-aware installer
+- [scripts/test_runtime_install.py](scripts/test_runtime_install.py): Codex/Claude smoke test
 - [references/collaboration-mode.md](references/collaboration-mode.md): collaboration-mode reference
 - [references/iterative-mode.md](references/iterative-mode.md): iterative-mode reference
 - [references/verification.md](references/verification.md): verification checklist

@@ -4,7 +4,7 @@
 
 [快速开始](#快速开始) · [模式对比](#模式对比) · [示例场景](#示例场景) · [仓库内容](#仓库内容)
 
-`project-doc-modes` 是一个用于搭建、整理和迁移仓库文档治理结构的 Codex Skill。
+`project-doc-modes` 是一套 Markdown-first 的仓库文档治理工作流，同时提供 Codex 和 Claude Code 两种入口，用来搭建、整理和迁移仓库文档结构。
 
 它支持两种主要模式：
 
@@ -20,8 +20,11 @@
 - 支持中文和英文两种语言模式
 - 默认保留现有代码目录，不随意移动代码
 - 生成当前入口、治理文档、交接文档和归档结构
+- 同一套核心规则既可作为 Codex skill 使用，也可作为 Claude Code 命令使用
 
 ## 快速开始
+
+### Codex
 
 你可以在 Codex 里直接这样触发：
 
@@ -36,6 +39,69 @@ Use $project-doc-modes to set up this repository in collaboration mode and keep 
 ```text
 Use $project-doc-modes to migrate this repository to iterative mode and make docs/product/v0.1 the current source of truth.
 ```
+
+### Claude Code
+
+这个仓库同时提供了 Claude Code 的项目记忆文件 [CLAUDE.md](CLAUDE.md) 和项目级 slash command [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md)。
+
+在 Claude Code 里进入仓库后，可以直接使用：
+
+```text
+/project-doc-modes
+```
+
+也可以顺手附带目标：
+
+```text
+/project-doc-modes 把这个仓库迁移到迭代模式，并保持当前文档为中文
+```
+
+## 安装
+
+如果你希望按运行环境安装，并且不要把另一套运行时包装文件一起拷过去，可以直接使用 [scripts/install_runtime.py](scripts/install_runtime.py)。
+
+### 安装到 Codex
+
+```bash
+python3 scripts/install_runtime.py ~/.codex/skills/project-doc-modes --runtime codex --force
+```
+
+安装或更新自定义 Codex skill 之后，需要重启 Codex，应用才会重新加载技能目录。
+
+会安装：
+- `SKILL.md`
+- `references/`
+- `agents/openai.yaml`
+
+不会安装：
+- `CLAUDE.md`
+- `.claude/commands/project-doc-modes.md`
+
+### 安装到 Claude Code
+
+```bash
+python3 scripts/install_runtime.py /path/to/your/repository --runtime claude --force
+```
+
+会安装：
+- `SKILL.md`
+- `references/`
+- `CLAUDE.md`
+- `.claude/commands/project-doc-modes.md`
+
+不会安装：
+- `agents/openai.yaml`
+
+### 自动检测运行环境
+
+```bash
+python3 scripts/install_runtime.py /target/path --runtime auto
+```
+
+自动检测规则：
+- 如果目标路径看起来像 Codex skill 目录，例如 `~/.codex/skills/project-doc-modes`，就按 Codex 安装
+- 如果目标路径看起来像仓库根目录，并且带有 `.git`、`.claude` 或 `CLAUDE.md`，就按 Claude Code 安装
+- 如果机器上两边环境都存在，而目标路径本身又不够明确，就停止并要求显式传入 `--runtime`
 
 ## 模式
 
@@ -108,10 +174,31 @@ Use $project-doc-modes to migrate this repository to iterative mode, keep curren
 - 生成的 Markdown 标题与导航
 - 当前治理文档和当前入口文档
 
+## 运行入口
+
+- Codex：通过 [SKILL.md](SKILL.md) 触发，并使用 [agents/openai.yaml](agents/openai.yaml) 作为界面便利层
+- Claude Code：通过 [CLAUDE.md](CLAUDE.md) 和 [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md) 触发，核心规则仍然来自同一份 `SKILL.md`
+
+## 测试
+
+如果你要确认 Codex 和 Claude Code 两套安装都可用，而且不会把彼此的包装文件装进去，可以运行这条 smoke test：
+
+```bash
+python3 scripts/test_runtime_install.py
+```
+
+这个仓库已经实际跑过本地端到端验证：
+- Codex：安装到 `~/.codex/skills/project-doc-modes` 后通过了 `quick_validate.py`，并且用 `codex exec` 成功触发了 `$project-doc-modes`
+- Claude Code：安装到临时仓库后，用 `claude -p` 成功触发了 `/project-doc-modes`
+
 ## 仓库内容
 
 - [SKILL.md](SKILL.md)：主工作流与提问规则
+- [CLAUDE.md](CLAUDE.md)：Claude Code 项目记忆入口
+- [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md)：Claude Code 项目级 slash command
 - [agents/openai.yaml](agents/openai.yaml)：界面展示信息与默认提示词
+- [scripts/install_runtime.py](scripts/install_runtime.py)：按运行环境安装的脚本
+- [scripts/test_runtime_install.py](scripts/test_runtime_install.py)：Codex / Claude Code 的烟雾测试
 - [references/collaboration-mode.md](references/collaboration-mode.md)：协作模式参考
 - [references/iterative-mode.md](references/iterative-mode.md)：迭代模式参考
 - [references/verification.md](references/verification.md)：验证清单
