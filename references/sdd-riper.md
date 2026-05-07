@@ -26,16 +26,31 @@ If a target repository already says implementation wins over docs, surface the c
 | Review | Medium | spec-vs-code verification across function, performance, and security | reviewer accepts or sends back |
 | Archive | Low | snapshot, reverse sync, and reusable lessons | current docs stay available |
 
-## Project-Doc-Modes Mapping
+## Mode-Aware Mapping
 
 - CodeMap: `docs/governance/context/CODEMAP.md`
 - Context Bundle: `docs/governance/context/CONTEXT_BUNDLE.md`
+
+### Iterative Mode
+
 - Requirements: `docs/product/vX.Y/requirements/`
 - Phase plans: `docs/product/vX.Y/phases/PHASE-*/PLAN.md`
 - Executable specs: `docs/product/vX.Y/phases/PHASE-*/specs/`
 - Review reports: `docs/product/vX.Y/phases/PHASE-*/REVIEW.md`
 - Reverse sync notes: `docs/product/vX.Y/phases/PHASE-*/IMPLEMENTATION_RECORD.md`
 - Historical snapshots: `docs/archive/`
+
+### Collaboration Mode
+
+- Requirements: `docs/collaboration/sdd/requirements/`
+- Phase plans: `docs/collaboration/sdd/phases/PHASE-*/PLAN.md`
+- Executable specs: `docs/collaboration/sdd/phases/PHASE-*/specs/`
+- Review reports: `docs/collaboration/sdd/phases/PHASE-*/REVIEW.md`
+- Reverse sync notes: `docs/collaboration/sdd/phases/PHASE-*/IMPLEMENTATION_RECORD.md`
+- Role matrix and handoffs: `docs/collaboration/`
+- Historical snapshots: `docs/archive/`
+
+Do not create `docs/product/vX.Y` in collaboration mode unless the user explicitly chooses a hybrid or versioned product flow.
 
 Do not create root `specs/` or `changes/` by default. If the user explicitly requests an OpenSpec-style dual directory, place it under `docs/openspec/specs/` and `docs/openspec/changes/` unless the repository already has a different established convention.
 

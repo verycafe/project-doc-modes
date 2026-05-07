@@ -11,6 +11,8 @@ When using this workflow in Codex:
 - ask short setup questions in small turns instead of dumping a long checklist
 - support either Chinese or English for prompts, labels, and generated Markdown
 - keep root Markdown limited to `AGENTS.md`, `CLAUDE.md`, and `README.md`
+- make generated `AGENTS.md` the canonical cross-agent governance entrypoint
+- make generated `CLAUDE.md` a Claude Code bridge that tells Claude to read `AGENTS.md` first
 - put generated non-root Markdown under categorized `docs/` folders
 - keep generated docs local-only in Git unless the user explicitly asks to track or commit them
 - in iterative mode, follow `PRD -> PHASE -> SPEC`: requirements first, phase plans next, SPEC docs under each phase

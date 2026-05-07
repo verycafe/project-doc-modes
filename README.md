@@ -96,18 +96,20 @@ Not installed:
 ### Install For Claude Code
 
 ```bash
-python3 scripts/install_runtime.py /path/to/your/repository --runtime claude --force
+python3 scripts/install_runtime.py ~/.claude/skills/project-doc-modes --runtime claude --force
 ```
 
 Installed file set:
 - `SKILL.md`
 - `references/`
-- `CLAUDE.md`
-- `.claude/commands/project-doc-modes.md`
-- `.claude/commands/sdd.md`
+
+Also written:
+- `~/.claude/commands/project-doc-modes.md`
+- `~/.claude/commands/sdd.md`
 
 Not installed:
 - `agents/openai.yaml`
+- target repository root files such as `SKILL.md`, `references/`, or command wrappers
 
 ### Auto-Detect The Runtime
 
@@ -116,9 +118,10 @@ python3 scripts/install_runtime.py /target/path --runtime auto
 ```
 
 Auto-detection rules:
-- install as Codex when the target path looks like a Codex skill directory such as `~/.codex/skills/project-doc-modes`
-- install as Claude Code when the target looks like a repository root with `.git`, `.claude`, or `CLAUDE.md`
-- stop and ask for an explicit runtime when both environments exist and the target path is ambiguous
+- install as Codex only when the target path is the current user's standard Codex skill directory: `~/.codex/skills/project-doc-modes`
+- install as Claude Code only when the target path is the current user's standard Claude skill directory: `~/.claude/skills/project-doc-modes`
+- refuse nonstandard targets and any target inside a repository tree so runtime files are not copied into project documentation
+- stop and ask for an explicit runtime when the target path is ambiguous
 
 ## Modes
 
@@ -128,7 +131,7 @@ Use this when the repository is split by role or ownership.
 
 Typical outputs:
 - `AGENTS.md`
-- `CLAUDE.md` when Claude Code should use the workflow
+- `CLAUDE.md` bridge when Claude Code should use the workflow
 - role guides and status docs under `docs/collaboration/`
 - handoff docs under `docs/collaboration/`
 - phase instructions under `docs/governance/` or `docs/collaboration/`
@@ -141,7 +144,7 @@ Use this when the repository is evolving as one product.
 Typical outputs:
 - `README.md`
 - `AGENTS.md`
-- `CLAUDE.md` when Claude Code should use the workflow
+- `CLAUDE.md` bridge when Claude Code should use the workflow
 - `docs/governance/STATUS.md`
 - `docs/governance/WORKFLOW.md`
 - `docs/governance/RELEASES.md`
@@ -207,7 +210,7 @@ The selected language affects:
 ## Runtime Support
 
 - Codex: use [`SKILL.md`](SKILL.md) with [`agents/openai.yaml`](agents/openai.yaml) as the UI convenience layer
-- Claude Code: use [`CLAUDE.md`](CLAUDE.md), [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md), and [`.claude/commands/sdd.md`](.claude/commands/sdd.md) as thin wrappers around the same `SKILL.md`
+- Claude Code: use [`CLAUDE.md`](CLAUDE.md), [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md), and [`.claude/commands/sdd.md`](.claude/commands/sdd.md) as thin wrappers around the same `SKILL.md`; generated target-project `CLAUDE.md` files should bridge Claude Code to `AGENTS.md`
 
 ## Testing
 
@@ -219,7 +222,7 @@ python3 scripts/test_runtime_install.py
 
 Local end-to-end checks already run for this repository:
 - Codex: installed into `~/.codex/skills/project-doc-modes`, passed `quick_validate.py`, and successfully triggered via `codex exec` with `$project-doc-modes`
-- Claude Code: installed into a temporary repo and successfully triggered via `claude -p` with `/project-doc-modes`; `/sdd` is installed as the SDD-RIPER shortcut
+- Claude Code: installed into a temporary user-level skill directory with global `/project-doc-modes` and `/sdd` command wrappers
 
 For the full testing guide, see [TESTING.md](TESTING.md).
 
@@ -228,7 +231,7 @@ For the full testing guide, see [TESTING.md](TESTING.md).
 - [SKILL.md](SKILL.md): main workflow and prompting rules
 - [TESTING.md](TESTING.md): English testing guide
 - [TESTING.zh-CN.md](TESTING.zh-CN.md): Chinese testing guide
-- [CLAUDE.md](CLAUDE.md): Claude Code project memory entrypoint
+- [CLAUDE.md](CLAUDE.md): Claude Code bridge entrypoint
 - [.claude/commands/project-doc-modes.md](.claude/commands/project-doc-modes.md): Claude Code project slash command
 - [.claude/commands/sdd.md](.claude/commands/sdd.md): Claude Code SDD-RIPER shortcut command
 - [agents/openai.yaml](agents/openai.yaml): UI metadata and default prompt

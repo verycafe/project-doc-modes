@@ -21,12 +21,15 @@ Expected behavior:
 3. Confirm the mode, language, and current role or phase context before restructuring.
 4. If `collaboration mode` is chosen, confirm the current role, editable paths, read-only or forbidden paths, and handoff rules before writing docs.
 5. Keep root Markdown limited to `AGENTS.md`, `CLAUDE.md`, and `README.md`; put generated docs under categorized `docs/` folders.
-6. Keep generated docs local-only in Git unless the user explicitly asks to track, stage, or commit them.
-7. For iterative docs, follow `PRD -> PHASE -> SPEC`: requirements first, phase plans next, SPEC docs under each phase.
-8. When team vibe coding or SDD-RIPER is requested, read @references/sdd-riper.md and record stage, approval gates, review path, and Reverse Sync path.
-9. For upgrades, copy a snapshot into `docs/archive/` before updating current docs; do not empty `docs/` unless the user requests a full reset.
-10. Scaffold or migrate the repository docs with minimal changes.
-11. Run the verification checklist before claiming completion.
+6. Make generated `AGENTS.md` the canonical cross-agent governance entrypoint.
+7. Make generated `CLAUDE.md` a Claude Code bridge that tells Claude to read `AGENTS.md` first.
+8. Do not write `project-doc-modes`, `/project-doc-modes`, `/sdd`, `$project-doc-modes`, `SKILL.md`, or local install paths into generated target docs.
+9. Keep generated docs local-only in Git unless the user explicitly asks to track, stage, or commit them.
+10. For iterative docs, follow `PRD -> PHASE -> SPEC`: requirements first, phase plans next, SPEC docs under each phase.
+11. When team vibe coding or SDD-RIPER is requested, read @references/sdd-riper.md and record stage, approval gates, review path, and Reverse Sync path.
+12. For upgrades, copy a snapshot into `docs/archive/` before updating current docs; do not empty `docs/` unless the user requests a full reset.
+13. Scaffold or migrate the repository docs with minimal changes.
+14. Run the verification checklist before claiming completion.
 
 If the user supplied extra arguments, treat them as additional intent:
 

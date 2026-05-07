@@ -1,23 +1,13 @@
 # project-doc-modes
 
-This repository ships a Markdown-first workflow for scaffolding, reorganizing, and migrating repository documentation.
+This is the Claude Code entrypoint for this repository.
 
-See @SKILL.md for the source-of-truth workflow.
+Read `AGENTS.md` first. It is the canonical cross-agent governance entrypoint for this repository.
 
-When using this workflow in Claude Code:
+Then read `SKILL.md` and the relevant files under `references/` before changing the workflow.
 
-- keep `SKILL.md` and the files under `references/` as the canonical instructions
-- inspect the target repository before creating or moving Markdown files
-- ask short setup questions in small turns instead of dumping a long checklist
-- support either Chinese or English for prompts, labels, and generated Markdown
-- keep root Markdown limited to `AGENTS.md`, `CLAUDE.md`, and `README.md`
-- put generated non-root Markdown under categorized `docs/` folders
-- keep generated docs local-only in Git unless the user explicitly asks to track or commit them
-- in iterative mode, follow `PRD -> PHASE -> SPEC`: requirements first, phase plans next, SPEC docs under each phase
-- when team vibe coding or SDD-RIPER is requested, record the current stage, human approval gates, spec-vs-code review path, and Reverse Sync path
-- when upgrading docs, copy a snapshot into `docs/archive/` before updating current docs and do not empty `docs/` by default
-- in `collaboration mode`, confirm the current role, editable paths, read-only or forbidden paths, and handoff expectations before writing docs
-- preserve existing runtime code roots unless the user explicitly asks to move them
-- run the verification checklist before claiming completion
+Claude-specific notes:
 
-The general slash command for this workflow lives at `.claude/commands/project-doc-modes.md`; the SDD-RIPER shortcut lives at `.claude/commands/sdd.md`.
+- use `.claude/commands/project-doc-modes.md` for the general slash command
+- use `.claude/commands/sdd.md` for the SDD-RIPER shortcut
+- do not fork the workflow rules in this file; update `AGENTS.md`, `SKILL.md`, and `references/` instead

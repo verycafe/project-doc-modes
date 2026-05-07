@@ -44,13 +44,18 @@ python3 scripts/test_runtime_install.py
 Codex install verified.
 Claude install verified.
 Cross-runtime file isolation verified.
+Repository-root install refusal verified.
+Nonstandard target refusal verified.
+Preflight overwrite refusal verified.
 Ambiguous auto-detection verified.
 ```
 
 这一步会确认：
 
 - Codex 只安装 `SKILL.md`、`references/`、`agents/openai.yaml`
-- Claude Code 只安装 `SKILL.md`、`references/`、`CLAUDE.md`、`.claude/commands/project-doc-modes.md` 和 `.claude/commands/sdd.md`
+- Claude Code 会把 `SKILL.md` 和 `references/` 安装到用户级 skill 目录，并把 `/project-doc-modes` 与 `/sdd` 命令包装写入用户级 Claude commands 目录
+- 指向仓库根目录、仓库内部路径、普通非标准目录的安装目标都会被拒绝，避免 runtime 文件变成目标项目文档
+- Claude 命令覆盖冲突会在复制 skill 文件前被发现
 - 自动检测遇到歧义目标时会拒绝猜测
 
 ## 手动端到端测试
@@ -89,13 +94,13 @@ codex exec --skip-git-repo-check --ephemeral -C /path/to/repo 'Use $project-doc-
 
 ### Claude Code
 
-1. 把 Claude 运行时文件安装到目标仓库：
+1. 安装或更新 Claude 用户级 skill 和命令：
 
 ```bash
-python3 scripts/install_runtime.py /path/to/repo --runtime claude --force
+python3 scripts/install_runtime.py ~/.claude/skills/project-doc-modes --runtime claude --force
 ```
 
-2. 在该仓库中运行：
+2. 在目标仓库中运行：
 
 ```text
 /project-doc-modes
@@ -116,9 +121,11 @@ claude -p '/sdd inspect this repository and answer in one short sentence what se
 
 预期成功信号：
 
-- Claude 能加载项目级 slash command
+- Claude 能加载用户级 slash command
 - 它会先检查仓库，再回答
 - 它会根据仓库现状提出一条简短的 setup 问题
+- 生成到目标仓库的 `CLAUDE.md` 会明确要求 Claude Code 先读 `AGENTS.md`
+- 生成到目标仓库的文档不会包含 `project-doc-modes`、`/project-doc-modes`、`/sdd`、已安装的 `SKILL.md`、`.codex/skills`、`.claude/skills` 或本机绝对安装路径，除非目标仓库就是这个 Skill 包本身
 
 ## 最近一次本地验证
 
@@ -126,7 +133,7 @@ claude -p '/sdd inspect this repository and answer in one short sentence what se
 
 - Codex 通过 `codex exec` 完成了真实触发
 - Claude Code 通过 `claude -p` 完成了真实触发
-- Claude 的项目级命令发现路径来自 `.claude/commands/project-doc-modes.md` 和 `.claude/commands/sdd.md`
+- Claude 的用户级命令发现路径来自 `~/.claude/commands/project-doc-modes.md` 和 `~/.claude/commands/sdd.md`
 
 ## 常见问题
 

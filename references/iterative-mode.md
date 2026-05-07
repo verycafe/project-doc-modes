@@ -59,9 +59,11 @@ repo/
 
 - `README.md`
 - `AGENTS.md`
-- `CLAUDE.md` when Claude Code should use the workflow
+- `CLAUDE.md` as a Claude Code bridge to `AGENTS.md` when Claude Code should use the workflow
 
 No other generated root Markdown is allowed unless the user explicitly asks for it.
+
+`AGENTS.md` is the canonical cross-agent governance file. `CLAUDE.md` should not fork those rules; it should tell Claude Code to read `AGENTS.md` first, then follow `docs/README.md` and `docs/product/CURRENT.md`.
 
 ### Governance docs
 
@@ -76,7 +78,8 @@ No other generated root Markdown is allowed unless the user explicitly asks for 
 - `docs/product/CURRENT.md`
 - `docs/product/vX.Y/README.md`
 - requirements docs under `docs/product/vX.Y/requirements/`
-- phase plans under `docs/product/vX.Y/phases/PHASE-*/`
+- phase index or roadmap under `docs/product/vX.Y/phases/`
+- executable phase plans and status under `docs/product/vX.Y/phases/PHASE-*/`
 - SPEC docs and technical contracts under `docs/product/vX.Y/phases/PHASE-*/specs/`
 - decision records under `docs/product/vX.Y/decisions/`
 

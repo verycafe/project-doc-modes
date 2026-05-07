@@ -56,10 +56,12 @@ repo/
   - define read-only directories or docs for each role
   - define required reading order before work starts
   - define verification commands
-- `CLAUDE.md` when Claude Code should use the workflow
+- `CLAUDE.md` as a Claude Code bridge to `AGENTS.md` when Claude Code should use the workflow
 - `README.md`
 
 No other generated root Markdown is allowed unless the user explicitly asks for it.
+
+`AGENTS.md` is the canonical cross-agent governance file. `CLAUDE.md` should tell Claude Code to read `AGENTS.md` first, then follow the active collaboration docs under `docs/`.
 
 ### Role-specific docs
 
@@ -68,6 +70,7 @@ No other generated root Markdown is allowed unless the user explicitly asks for 
 - handoff document from the other side under `docs/collaboration/<role>/`
 - staged instructions under `docs/governance/` or `docs/collaboration/`
 - shared role matrix under `docs/collaboration/ROLE_MATRIX.md`
+- SDD-RIPER requirements, phase plans, and specs under `docs/collaboration/sdd/` when SDD-RIPER is active
 
 When SDD-RIPER is active, role docs must name:
 - the current RIPER stage

@@ -98,18 +98,20 @@ python3 scripts/install_runtime.py ~/.codex/skills/project-doc-modes --runtime c
 ### 安装到 Claude Code
 
 ```bash
-python3 scripts/install_runtime.py /path/to/your/repository --runtime claude --force
+python3 scripts/install_runtime.py ~/.claude/skills/project-doc-modes --runtime claude --force
 ```
 
 会安装：
 - `SKILL.md`
 - `references/`
-- `CLAUDE.md`
-- `.claude/commands/project-doc-modes.md`
-- `.claude/commands/sdd.md`
+
+同时会写入：
+- `~/.claude/commands/project-doc-modes.md`
+- `~/.claude/commands/sdd.md`
 
 不会安装：
 - `agents/openai.yaml`
+- 目标仓库根目录里的 `SKILL.md`、`references/` 或命令包装文件
 
 ### 自动检测运行环境
 
@@ -118,9 +120,10 @@ python3 scripts/install_runtime.py /target/path --runtime auto
 ```
 
 自动检测规则：
-- 如果目标路径看起来像 Codex skill 目录，例如 `~/.codex/skills/project-doc-modes`，就按 Codex 安装
-- 如果目标路径看起来像仓库根目录，并且带有 `.git`、`.claude` 或 `CLAUDE.md`，就按 Claude Code 安装
-- 如果机器上两边环境都存在，而目标路径本身又不够明确，就停止并要求显式传入 `--runtime`
+- 只有目标路径是当前用户的标准 Codex skill 目录 `~/.codex/skills/project-doc-modes` 时，才按 Codex 安装
+- 只有目标路径是当前用户的标准 Claude skill 目录 `~/.claude/skills/project-doc-modes` 时，才按 Claude Code 安装
+- 如果目标路径不是标准 skill 目录，或位于某个仓库目录树内，就拒绝安装，避免把 runtime 文件复制进项目文档
+- 如果目标路径本身不够明确，就停止并要求显式传入 `--runtime`
 
 ## 模式
 
@@ -130,7 +133,7 @@ python3 scripts/install_runtime.py /target/path --runtime auto
 
 典型输出：
 - `AGENTS.md`
-- 需要 Claude Code 使用该流程时生成 `CLAUDE.md`
+- 需要 Claude Code 使用该流程时生成桥接到 `AGENTS.md` 的 `CLAUDE.md`
 - `docs/collaboration/` 下的角色指南与状态文档
 - `docs/collaboration/` 下的交接文档
 - `docs/governance/` 或 `docs/collaboration/` 下的阶段指令文档
@@ -143,7 +146,7 @@ python3 scripts/install_runtime.py /target/path --runtime auto
 典型输出：
 - `README.md`
 - `AGENTS.md`
-- 需要 Claude Code 使用该流程时生成 `CLAUDE.md`
+- 需要 Claude Code 使用该流程时生成桥接到 `AGENTS.md` 的 `CLAUDE.md`
 - `docs/governance/STATUS.md`
 - `docs/governance/WORKFLOW.md`
 - `docs/governance/RELEASES.md`
@@ -209,7 +212,7 @@ Use $project-doc-modes to add SDD-RIPER governance to this repository, keep gene
 ## 运行入口
 
 - Codex：通过 [SKILL.md](SKILL.md) 触发，并使用 [agents/openai.yaml](agents/openai.yaml) 作为界面便利层
-- Claude Code：通过 [CLAUDE.md](CLAUDE.md)、[`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md) 和 [`.claude/commands/sdd.md`](.claude/commands/sdd.md) 触发，核心规则仍然来自同一份 `SKILL.md`
+- Claude Code：通过 [CLAUDE.md](CLAUDE.md)、[`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md) 和 [`.claude/commands/sdd.md`](.claude/commands/sdd.md) 触发，核心规则仍然来自同一份 `SKILL.md`；生成到目标项目里的 `CLAUDE.md` 应桥接 Claude Code 到 `AGENTS.md`
 
 ## 测试
 
@@ -221,7 +224,7 @@ python3 scripts/test_runtime_install.py
 
 这个仓库已经实际跑过本地端到端验证：
 - Codex：安装到 `~/.codex/skills/project-doc-modes` 后通过了 `quick_validate.py`，并且用 `codex exec` 成功触发了 `$project-doc-modes`
-- Claude Code：安装到临时仓库后，用 `claude -p` 成功触发了 `/project-doc-modes`；`/sdd` 会作为 SDD-RIPER 快捷命令一起安装
+- Claude Code：安装到临时用户级 skill 目录后，会写入全局 `/project-doc-modes` 与 `/sdd` 命令包装
 
 完整测试说明见 [TESTING.zh-CN.md](TESTING.zh-CN.md)。
 
@@ -230,7 +233,7 @@ python3 scripts/test_runtime_install.py
 - [SKILL.md](SKILL.md)：主工作流与提问规则
 - [TESTING.md](TESTING.md)：英文测试指南
 - [TESTING.zh-CN.md](TESTING.zh-CN.md)：中文测试指南
-- [CLAUDE.md](CLAUDE.md)：Claude Code 项目记忆入口
+- [CLAUDE.md](CLAUDE.md)：Claude Code 桥接入口
 - [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md)：Claude Code 项目级 slash command
 - [`.claude/commands/sdd.md`](.claude/commands/sdd.md)：Claude Code 的 SDD-RIPER 快捷命令
 - [agents/openai.yaml](agents/openai.yaml)：界面展示信息与默认提示词

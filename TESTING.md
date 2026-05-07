@@ -44,13 +44,18 @@ Expected result:
 Codex install verified.
 Claude install verified.
 Cross-runtime file isolation verified.
+Repository-root install refusal verified.
+Nonstandard target refusal verified.
+Preflight overwrite refusal verified.
 Ambiguous auto-detection verified.
 ```
 
 This confirms:
 
 - Codex installs only `SKILL.md`, `references/`, and `agents/openai.yaml`
-- Claude Code installs only `SKILL.md`, `references/`, `CLAUDE.md`, `.claude/commands/project-doc-modes.md`, and `.claude/commands/sdd.md`
+- Claude Code installs `SKILL.md` and `references/` into a user-level skill directory, and writes `/project-doc-modes` plus `/sdd` command wrappers into the user-level Claude commands directory
+- repository-root, repository-nested, and plain nonstandard install targets are refused so runtime files do not become target project docs
+- Claude command overwrite conflicts are detected before skill files are copied
 - auto-detection refuses ambiguous targets instead of guessing
 
 ## Manual End-To-End
@@ -89,13 +94,13 @@ Important:
 
 ### Claude Code
 
-1. Install the Claude runtime files into the target repository:
+1. Install or update the Claude user-level skill and commands:
 
 ```bash
-python3 scripts/install_runtime.py /path/to/repo --runtime claude --force
+python3 scripts/install_runtime.py ~/.claude/skills/project-doc-modes --runtime claude --force
 ```
 
-2. From that repository, run:
+2. From a target repository, run:
 
 ```text
 /project-doc-modes
@@ -116,9 +121,11 @@ claude -p '/sdd inspect this repository and answer in one short sentence what se
 
 Expected signs of success:
 
-- Claude loads the project-local slash command
+- Claude loads the user-level slash command
 - it inspects the repository before answering
 - it asks a short setup question that matches the repo state
+- generated target `CLAUDE.md` tells Claude Code to read `AGENTS.md` first
+- generated target docs do not contain `project-doc-modes`, `/project-doc-modes`, `/sdd`, installed `SKILL.md`, `.codex/skills`, `.claude/skills`, or local absolute install paths unless the target repo is this skill package
 
 ## Latest Local Evidence
 
@@ -126,7 +133,7 @@ The most recent local maintainer run verified:
 
 - Codex end-to-end trigger via `codex exec`
 - Claude Code end-to-end trigger via `claude -p`
-- project-local Claude command discovery through `.claude/commands/project-doc-modes.md` and `.claude/commands/sdd.md`
+- user-level Claude command discovery through `~/.claude/commands/project-doc-modes.md` and `~/.claude/commands/sdd.md`
 
 ## Troubleshooting
 

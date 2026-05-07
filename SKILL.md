@@ -26,9 +26,11 @@ Apply these defaults unless the user explicitly requests a different repository 
 - all other generated Markdown belongs under `docs/`
 - historical material belongs under `docs/archive/`, not root `archive/`
 - product requirements, phase plans, and specs must follow the `PRD -> PHASE -> SPEC` chain
+- `AGENTS.md` is the canonical cross-agent governance entrypoint; generated `CLAUDE.md` must bridge Claude Code to `AGENTS.md`
 - do not stage, commit, or push generated docs
 - keep newly generated docs local-only by default in Git repositories
 - for SDD-RIPER projects, active specs are the source of intended behavior and code execution requires an approved plan
+- generated target-repository docs must be tool-agnostic: never mention this skill, its install path, or its invocation commands
 
 For Git repositories, local-only means:
 - do not run `git add`, `git commit`, or `git push` unless the user asks
@@ -57,8 +59,11 @@ Default current-doc categories:
 - `docs/governance/context/`: CodeMap, context bundles, and repo evidence packs
 - `docs/product/`: current product entrypoint and version folders
 - `docs/product/vX.Y/requirements/`: PRDs, user needs, business requirements, audience docs
-- `docs/product/vX.Y/phases/`: phase roadmap, phase plans, and phase status
+- `docs/product/vX.Y/phases/`: phase index and roadmap only
 - `docs/product/vX.Y/phases/PHASE-*/specs/`: SPEC files and technical contracts produced for that phase
+- `docs/collaboration/`: collaboration-mode role matrix, role guides, status, handoffs, and SDD artifacts
+- `docs/collaboration/sdd/requirements/`: collaboration-mode requirements when SDD-RIPER is active
+- `docs/collaboration/sdd/phases/PHASE-*/specs/`: collaboration-mode phase specs when SDD-RIPER is active
 - `docs/product/vX.Y/decisions/`: ADRs and decision records
 - `docs/archive/`: historical snapshots and inactive docs
 
@@ -66,6 +71,10 @@ Default authoring flow:
 1. write or update the requirement/proposal docs first
 2. derive phase plans from those requirements
 3. split each phase into the SPEC docs needed to execute that phase
+
+Use the active mode to choose paths:
+- iterative mode uses `docs/product/vX.Y/...`
+- collaboration mode uses `docs/collaboration/...` and must not create `docs/product/vX.Y` unless the user explicitly requests a hybrid/versioned product flow
 
 Do not put `PRD.md`, phase plans, and `SPEC.md` documents in the same folder. If the target repository uses names such as `SPEC.md`, classify by intent:
 - requirement or product proposal -> `requirements/`
@@ -91,6 +100,8 @@ Do not use this skill when the user only wants:
 
 ## Command Entrypoints
 
+These entrypoints are for invoking this skill only. They are implementation details, not target-project documentation.
+
 Codex:
 - use `$project-doc-modes` for the general workflow
 - use `$project-doc-modes SDD` or `$project-doc-modes SDD-RIPER` when the user wants spec-driven team vibe coding
@@ -99,7 +110,9 @@ Claude Code:
 - use `/project-doc-modes` for the general workflow
 - use `/sdd` as the short command for SDD-RIPER governance
 
-All command wrappers must point back to this `SKILL.md` and the relevant `references/` files instead of forking the workflow.
+All command wrappers in this skill package must point back to this `SKILL.md` and the relevant `references/` files instead of forking the workflow.
+
+Do not write these command names or any installed skill path into generated docs for another repository. In target docs, describe the project workflow directly, such as "use SDD-RIPER governance" or "follow the PRD -> PHASE -> SPEC chain."
 
 ## Workflow
 
@@ -356,9 +369,26 @@ For either mode:
 - ensure only one current version is marked as source-of-truth
 - snapshot historical material into archive paths instead of deleting context
 - keep root Markdown limited to `AGENTS.md`, `CLAUDE.md`, and `README.md`
+- make `AGENTS.md` the canonical root governance file for all agents
+- make `CLAUDE.md` a bridge file that tells Claude Code to read `AGENTS.md` first and then follow the active docs under `docs/`
 - keep all other generated Markdown under categorized `docs/` folders
 
 Use the reference files for required outputs and folder layout.
+
+### 4.5. Root Entrypoint Contract
+
+Generated root entrypoints must be project-native:
+- `AGENTS.md`: canonical cross-agent rules, active doc map, edit boundaries, Git policy, archive policy, verification rules
+- `CLAUDE.md`: Claude Code bridge; it must read `AGENTS.md` first, with any Claude-specific rules as a short addendum
+- `README.md`: human-facing project overview and links to active docs
+
+Default `CLAUDE.md` bridge content should say, in the chosen document language:
+- this file is the Claude Code entrypoint
+- read `AGENTS.md` first for canonical project rules
+- then read the active docs named by `docs/README.md` and mode-specific current entrypoints
+- follow any Claude-specific notes listed in this file
+
+Do not generate a `CLAUDE.md` that only describes a tool, plugin, or skill. If `CLAUDE.md` exists and lacks an `AGENTS.md` bridge, add the bridge. If the user requests Claude-specific governance, keep the bridge first and put Claude-specific rules after it.
 
 ### 5. Write Current-Version Docs
 
@@ -370,6 +400,9 @@ When writing the docs:
 - if the user requests a language switch during migration, update current entrypoints to the new language and leave historical docs in archive with clear labels
 - reflect the confirmed role and current phase-document context in the generated governance and handoff docs
 - use the chosen display language for mode labels, section titles, prompts, and navigation text
+- write target docs as project-native governance, not as instructions to invoke `project-doc-modes`, `/sdd`, `$project-doc-modes`, or an installed `SKILL.md`
+- never include absolute local paths such as `/Users/...`, `~/.codex/skills/...`, or `~/.claude/skills/...` in generated target docs
+- ensure generated `CLAUDE.md` explicitly references `AGENTS.md` as the canonical project rules entrypoint
 - in collaboration mode, record the current operating role and the editable, read-only, and forbidden paths for each role in the active docs
 - if SDD-RIPER is active, record the current RIPER stage, required evidence, HIL gates, and Reverse Sync expectations in the active docs
 
@@ -383,7 +416,7 @@ In iterative mode, this usually includes:
 - `docs/product/vX.Y/decisions/...`
 - root `README.md`
 - root `AGENTS.md`
-- root `CLAUDE.md` when Claude Code should use the workflow
+- root `CLAUDE.md` bridge when Claude Code should use the workflow
 - `docs/governance/STATUS.md`
 - `docs/governance/WORKFLOW.md`
 - `docs/governance/RELEASES.md`
@@ -392,22 +425,29 @@ In iterative mode, this usually includes:
 
 In collaboration mode, this usually includes:
 - root `AGENTS.md` with ownership boundaries
-- root `CLAUDE.md` when Claude Code should use the workflow
+- root `CLAUDE.md` bridge when Claude Code should use the workflow
 - role handoff docs under `docs/collaboration/`
 - role-specific guide and status docs under `docs/collaboration/`
 - phase or task instructions under `docs/governance/` or `docs/collaboration/`
+- SDD-RIPER requirements, phase plans, and specs under `docs/collaboration/sdd/` when SDD-RIPER is active
 
 ### 5.5. Upgrade And Archive Current Docs
 
 When upgrading docs, do not empty `docs/` by default.
 
 Default upgrade flow:
-1. identify the active current docs from `docs/README.md`, `docs/product/CURRENT.md`, and root entrypoints
+1. identify active current docs by mode
 2. copy the current docs into `docs/archive/` as a timestamped or versioned snapshot
 3. keep the active docs in place
 4. update the active docs in place, or create the next current version only when the user requested a version bump
 5. perform Reverse Sync updates when implementation discoveries changed requirements, specs, or decisions
 6. update entrypoints after the new current docs are ready
+
+Mode-specific active-doc discovery:
+- iterative mode: include `docs/README.md`, `docs/product/CURRENT.md`, the active `docs/product/vX.Y/` tree, `docs/governance/`, and root entrypoints
+- collaboration mode: include `docs/README.md`, `docs/collaboration/ROLE_MATRIX.md`, role guide/status/handoff docs, `docs/governance/`, and root entrypoints
+- SDD-RIPER in iterative mode: also include `docs/governance/context/`, active `docs/product/vX.Y/requirements/`, and the active `docs/product/vX.Y/phases/PHASE-*/` directory
+- SDD-RIPER in collaboration mode: also include `docs/governance/context/`, `docs/collaboration/sdd/requirements/`, and the active `docs/collaboration/sdd/phases/PHASE-*/` directory
 
 Only move all current docs out of `docs/` or clear the current docs directory when the user explicitly asks for a full reset or destructive archive.
 
@@ -434,9 +474,12 @@ At minimum:
 - confirm pre-existing code directories still exist
 - if the repository started empty, confirm no unrequested code roots were created
 - confirm root Markdown is limited to `AGENTS.md`, `CLAUDE.md`, and `README.md`
+- confirm `AGENTS.md` is the canonical cross-agent governance entrypoint
+- confirm generated `CLAUDE.md` tells Claude Code to read `AGENTS.md` first
 - confirm generated non-root Markdown is under `docs/`
 - confirm archive content lives under `docs/archive/`
 - confirm requirements, phases, phase-level specs, and decisions are in separate folders
+- confirm generated target docs do not mention `project-doc-modes`, `/project-doc-modes`, `/sdd`, `$project-doc-modes`, installed `SKILL.md` paths, `.codex/skills`, `.claude/skills`, or absolute `/Users/...` paths
 - if SDD-RIPER is active, confirm docs identify the RIPER stage, approval gates, spec-vs-code review path, and Reverse Sync record path
 - confirm generated docs were not staged or committed unless the user requested Git tracking
 - confirm newly generated untracked local-only docs are covered by `.git/info/exclude` when the target is a Git repository
@@ -482,6 +525,7 @@ For spec-driven execution or team vibe coding, also read:
 - archive by copying a snapshot before upgrading current docs; do not clear `docs/` by default
 - keep the root Markdown surface limited to `AGENTS.md`, `CLAUDE.md`, and `README.md`
 - keep generated current docs categorized under `docs/`
+- keep target docs free of tool invocation names and local install paths
 - when SDD-RIPER is active, keep CodeMap/context bundles under `docs/governance/context/`
 - when SDD-RIPER is active, encode No Spec/No Code, Spec Review, Plan Approved, Review, and Reverse Sync gates
 - keep references accurate after file moves
@@ -500,5 +544,6 @@ Portability rules:
 - store the core workflow in `SKILL.md` and reference files
 - avoid assuming Codex-only APIs in the main logic
 - treat `agents/openai.yaml` as a Codex convenience layer, not the core of the skill
-- when exposing this workflow in Claude Code, point `CLAUDE.md` and any `.claude/commands/*.md` wrappers back to `SKILL.md` instead of forking the instructions
+- inside this skill package, point `CLAUDE.md` and any `.claude/commands/*.md` wrappers back to `SKILL.md` instead of forking the instructions
+- in repositories generated or migrated by this skill, do not point project docs back to this skill package or to any local install path
 - only add automation scripts later if repeated file generation becomes too mechanical
