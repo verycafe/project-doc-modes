@@ -1,6 +1,6 @@
 ---
 name: project-doc-modes
-description: Use this skill when a user wants Codex or another coding agent to scaffold, reorganize, or migrate a repository's documentation and governance structure into either a role-split collaboration mode or a versioned iterative mode. It is for creating and updating folder layout, archive layout, repo rules, version entrypoints, and markdown source-of-truth documents based on the current codebase.
+description: Use this skill when a user wants Codex or another coding agent to scaffold, reorganize, or migrate a repository's documentation and governance structure into either a role-split collaboration mode, a versioned iterative mode, or a team vibe coding / SDD-RIPER workflow. It is for creating and updating folder layout, archive layout, repo rules, version entrypoints, PRD to PHASE to SPEC docs, and markdown source-of-truth documents based on the current codebase.
 ---
 
 # Project Doc Modes
@@ -11,18 +11,75 @@ This skill defines a reusable workflow for turning a repository into one of two 
 - `collaboration mode`: role-split ownership with explicit boundaries, handoff docs, and role-specific work instructions
 - `iterative mode`: unified repository workflow with versioned product docs, archive rules, and repository-wide governance files
 
+It can also layer SDD-RIPER rules onto either mode when the repository needs team vibe coding, spec-driven execution, or AI coding governance.
+
 Keep the core portable:
 - prefer Markdown rules, file templates, and verification steps
 - do not depend on Node.js unless the user explicitly asks for automation scripts
 - preserve current code directories unless the user explicitly asks to move code
+
+## Non-Negotiable Defaults
+
+Apply these defaults unless the user explicitly requests a different repository policy:
+
+- root Markdown is limited to `AGENTS.md`, `CLAUDE.md`, and `README.md`
+- all other generated Markdown belongs under `docs/`
+- historical material belongs under `docs/archive/`, not root `archive/`
+- product requirements, phase plans, and specs must follow the `PRD -> PHASE -> SPEC` chain
+- do not stage, commit, or push generated docs
+- keep newly generated docs local-only by default in Git repositories
+- for SDD-RIPER projects, active specs are the source of intended behavior and code execution requires an approved plan
+
+For Git repositories, local-only means:
+- do not run `git add`, `git commit`, or `git push` unless the user asks
+- for newly generated untracked doc paths, append local ignore patterns to `.git/info/exclude` instead of editing `.gitignore`
+- do not add `.git/info/exclude` rules for files that are already tracked
+- if a tracked root entrypoint such as `README.md`, `AGENTS.md`, or `CLAUDE.md` must change, edit it minimally and report that it remains a tracked Git change
+
+Use a marked block when appending local excludes so future agents can maintain it safely:
+
+```text
+# project-doc-modes local docs
+docs/
+AGENTS.md
+CLAUDE.md
+README.md
+```
+
+Only include patterns for generated paths that should remain local in that target repository.
+
+## Document Placement Contract
+
+Use lowercase `docs/` unless the target repository already has an intentional uppercase `DOCS/` convention. Do not create both.
+
+Default current-doc categories:
+- `docs/governance/`: workflow, status, release notes, operating rules, handoff rules
+- `docs/governance/context/`: CodeMap, context bundles, and repo evidence packs
+- `docs/product/`: current product entrypoint and version folders
+- `docs/product/vX.Y/requirements/`: PRDs, user needs, business requirements, audience docs
+- `docs/product/vX.Y/phases/`: phase roadmap, phase plans, and phase status
+- `docs/product/vX.Y/phases/PHASE-*/specs/`: SPEC files and technical contracts produced for that phase
+- `docs/product/vX.Y/decisions/`: ADRs and decision records
+- `docs/archive/`: historical snapshots and inactive docs
+
+Default authoring flow:
+1. write or update the requirement/proposal docs first
+2. derive phase plans from those requirements
+3. split each phase into the SPEC docs needed to execute that phase
+
+Do not put `PRD.md`, phase plans, and `SPEC.md` documents in the same folder. If the target repository uses names such as `SPEC.md`, classify by intent:
+- requirement or product proposal -> `requirements/`
+- phase plan, milestone, roadmap, rollout plan -> `phases/PHASE-*/`
+- phase-level technical contract, API, data model, trace format -> `phases/PHASE-*/specs/`
 
 ## When To Use
 
 Use this skill when the user asks for any of the following:
 - create a reusable repository documentation standard
 - choose between a collaboration workflow and an iterative workflow
+- apply team vibe coding, SDD-RIPER, or spec-driven AI coding rules to a repository
 - generate versioned docs and archive folders
-- create repo governance docs such as `AGENTS.md`, `STATUS.md`, `WORKFLOW.md`, `RELEASES.md`
+- create repo governance docs such as `AGENTS.md`, `CLAUDE.md`, `README.md`, or files under `docs/governance/`
 - reorganize old docs into a historical archive
 - migrate a project from a role-split structure into a unified versioned structure
 - recreate the same document system for a new project
@@ -31,6 +88,18 @@ Do not use this skill when the user only wants:
 - a single feature PRD
 - a one-off README rewrite
 - implementation-only code changes without repository-structure work
+
+## Command Entrypoints
+
+Codex:
+- use `$project-doc-modes` for the general workflow
+- use `$project-doc-modes SDD` or `$project-doc-modes SDD-RIPER` when the user wants spec-driven team vibe coding
+
+Claude Code:
+- use `/project-doc-modes` for the general workflow
+- use `/sdd` as the short command for SDD-RIPER governance
+
+All command wrappers must point back to this `SKILL.md` and the relevant `references/` files instead of forking the workflow.
 
 ## Workflow
 
@@ -42,6 +111,8 @@ Before writing files:
 - inspect current docs and repo rules
 - identify whether the repo already has historical docs that should be archived rather than deleted
 - identify the dominant language of the current active docs, if any
+- inspect `git status --short` when the target is a Git repository
+- identify which docs are already tracked before deciding local-only exclude rules
 
 Treat existing code, config, and active docs as source material. Do not invent paths.
 
@@ -55,6 +126,9 @@ If code directories exist but are empty:
 - note that implementation has not started yet
 - continue scaffolding docs without treating the empty directories as an error
 
+If the target needs team vibe coding, SDD-RIPER, spec-driven execution, AI coding governance, or code-facing workflow gates, read:
+- `references/sdd-riper.md`
+
 ### 1.5. Ask Before Acting
 
 Stay in questioning mode before restructuring docs.
@@ -64,6 +138,7 @@ For repositories that already contain runtime code, if the user has not already 
 - the user's current role or ownership boundary in the repository
 - whether there is a current phase, sprint, week, or milestone document, and where it lives
 - which language the generated Markdown docs should use: Chinese or English
+- whether to enforce SDD-RIPER gates such as Spec Review, Plan Approved, code review, release approval, and Reverse Sync when the user asked for code-facing governance
 
 For repositories that are empty or documentation-first, if the user has not already answered them, ask concise questions about:
 - which mode to use: `collaboration mode` or `iterative mode`
@@ -279,7 +354,9 @@ For either mode:
 - create archive rules
 - create repository-level governance files
 - ensure only one current version is marked as source-of-truth
-- move historical material into archive paths instead of deleting context
+- snapshot historical material into archive paths instead of deleting context
+- keep root Markdown limited to `AGENTS.md`, `CLAUDE.md`, and `README.md`
+- keep all other generated Markdown under categorized `docs/` folders
 
 Use the reference files for required outputs and folder layout.
 
@@ -294,23 +371,45 @@ When writing the docs:
 - reflect the confirmed role and current phase-document context in the generated governance and handoff docs
 - use the chosen display language for mode labels, section titles, prompts, and navigation text
 - in collaboration mode, record the current operating role and the editable, read-only, and forbidden paths for each role in the active docs
+- if SDD-RIPER is active, record the current RIPER stage, required evidence, HIL gates, and Reverse Sync expectations in the active docs
 
 In iterative mode, this usually includes:
 - `docs/README.md`
 - `docs/product/CURRENT.md`
-- `docs/product/vX.Y/...`
+- `docs/product/vX.Y/README.md`
+- `docs/product/vX.Y/requirements/...`
+- `docs/product/vX.Y/phases/PHASE-*/...`
+- `docs/product/vX.Y/phases/PHASE-*/specs/...`
+- `docs/product/vX.Y/decisions/...`
 - root `README.md`
 - root `AGENTS.md`
-- root `STATUS.md`
-- root `WORKFLOW.md`
-- root `RELEASES.md`
-- root `archive/`
+- root `CLAUDE.md` when Claude Code should use the workflow
+- `docs/governance/STATUS.md`
+- `docs/governance/WORKFLOW.md`
+- `docs/governance/RELEASES.md`
+- `docs/governance/context/...` when CodeMap or context bundles are needed
+- `docs/archive/`
 
 In collaboration mode, this usually includes:
 - root `AGENTS.md` with ownership boundaries
-- role handoff docs
-- role-specific guide and status docs
-- phase or task instructions
+- root `CLAUDE.md` when Claude Code should use the workflow
+- role handoff docs under `docs/collaboration/`
+- role-specific guide and status docs under `docs/collaboration/`
+- phase or task instructions under `docs/governance/` or `docs/collaboration/`
+
+### 5.5. Upgrade And Archive Current Docs
+
+When upgrading docs, do not empty `docs/` by default.
+
+Default upgrade flow:
+1. identify the active current docs from `docs/README.md`, `docs/product/CURRENT.md`, and root entrypoints
+2. copy the current docs into `docs/archive/` as a timestamped or versioned snapshot
+3. keep the active docs in place
+4. update the active docs in place, or create the next current version only when the user requested a version bump
+5. perform Reverse Sync updates when implementation discoveries changed requirements, specs, or decisions
+6. update entrypoints after the new current docs are ready
+
+Only move all current docs out of `docs/` or clear the current docs directory when the user explicitly asks for a full reset or destructive archive.
 
 ### 6. Update Entrypoints
 
@@ -318,6 +417,7 @@ After creating files:
 - update root entrypoints to point to the active structure
 - remove stale references to previous current-version paths
 - keep archive references explicit and clearly labeled as historical
+- keep root entrypoints from pointing at root `archive/`, root `STATUS.md`, root `WORKFLOW.md`, or root `RELEASES.md`
 
 ### 7. Verify
 
@@ -333,6 +433,13 @@ At minimum:
 - confirm archive-only docs remain outside the active entrypoint chain
 - confirm pre-existing code directories still exist
 - if the repository started empty, confirm no unrequested code roots were created
+- confirm root Markdown is limited to `AGENTS.md`, `CLAUDE.md`, and `README.md`
+- confirm generated non-root Markdown is under `docs/`
+- confirm archive content lives under `docs/archive/`
+- confirm requirements, phases, phase-level specs, and decisions are in separate folders
+- if SDD-RIPER is active, confirm docs identify the RIPER stage, approval gates, spec-vs-code review path, and Reverse Sync record path
+- confirm generated docs were not staged or committed unless the user requested Git tracking
+- confirm newly generated untracked local-only docs are covered by `.git/info/exclude` when the target is a Git repository
 - confirm the chosen document language is applied consistently across newly created current docs
 - if the repository already had runtime code, confirm the mode, role, phase-doc context, and document language were gathered or explicitly confirmed before restructuring
 - if the repository started empty, confirm the mode, role or ownership plan, initial version or phase, starter-code-directory choice, and document language were gathered or explicitly confirmed before restructuring
@@ -357,10 +464,13 @@ Choose this when:
 - the repo is in unified development
 - one shared version should be the current source-of-truth
 - old versions need archiving
-- governance rules should live at the repo root
+- governance entrypoints should live at the repo root while detailed governance docs live under `docs/governance/`
 
 See:
 - `references/iterative-mode.md`
+
+For spec-driven execution or team vibe coding, also read:
+- `references/sdd-riper.md`
 
 ## Output Standards
 
@@ -369,6 +479,11 @@ See:
 - use archive paths for historical materials
 - avoid parallel "current" structures
 - preserve evidence of previous versions without letting them remain active
+- archive by copying a snapshot before upgrading current docs; do not clear `docs/` by default
+- keep the root Markdown surface limited to `AGENTS.md`, `CLAUDE.md`, and `README.md`
+- keep generated current docs categorized under `docs/`
+- when SDD-RIPER is active, keep CodeMap/context bundles under `docs/governance/context/`
+- when SDD-RIPER is active, encode No Spec/No Code, Spec Review, Plan Approved, Review, and Reverse Sync gates
 - keep references accurate after file moves
 - make the output language explicit or inferable from repository context
 - support Chinese or English for generated Markdown content

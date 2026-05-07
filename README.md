@@ -18,6 +18,9 @@ It is designed to ask a few short setup questions first, then generate the right
 - Supports both Chinese and English for prompts, labels, and generated Markdown
 - Preserves existing code directories unless the user explicitly asks to move them
 - Builds current-entry docs, governance files, handoff docs, and archive structure
+- Keeps generated docs local-only in Git by default unless the user asks to track them
+- Separates requirements, phase plans, and SPEC docs as `PRD -> PHASE -> SPEC`
+- Supports SDD-RIPER gates for team vibe coding: research, plan approval, execution, review, and Reverse Sync
 - Works as a Codex skill and as a Claude Code slash command without forking the core workflow
 
 ## Quick Start
@@ -38,9 +41,13 @@ Use $project-doc-modes to set up this repository in collaboration mode and keep 
 Use $project-doc-modes to migrate this repository to iterative mode and make docs/product/v0.1 the current source of truth.
 ```
 
+```text
+Use $project-doc-modes SDD to add SDD-RIPER governance and organize docs as PRD -> PHASE -> SPEC.
+```
+
 ### Claude Code
 
-This repository includes project memory in [`CLAUDE.md`](CLAUDE.md) and a project slash command at [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md).
+This repository includes project memory in [`CLAUDE.md`](CLAUDE.md), a general slash command at [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md), and an SDD shortcut at [`.claude/commands/sdd.md`](.claude/commands/sdd.md).
 
 In Claude Code, open the repository and use:
 
@@ -48,10 +55,20 @@ In Claude Code, open the repository and use:
 /project-doc-modes
 ```
 
+For SDD-RIPER, use the short command:
+
+```text
+/sdd
+```
+
 You can also pass extra intent inline:
 
 ```text
 /project-doc-modes migrate this repository to iterative mode and keep the docs in Chinese
+```
+
+```text
+/sdd start Phase 1 in Chinese and keep generated docs local-only
 ```
 
 ## Install
@@ -74,6 +91,7 @@ Installed file set:
 Not installed:
 - `CLAUDE.md`
 - `.claude/commands/project-doc-modes.md`
+- `.claude/commands/sdd.md`
 
 ### Install For Claude Code
 
@@ -86,6 +104,7 @@ Installed file set:
 - `references/`
 - `CLAUDE.md`
 - `.claude/commands/project-doc-modes.md`
+- `.claude/commands/sdd.md`
 
 Not installed:
 - `agents/openai.yaml`
@@ -109,9 +128,10 @@ Use this when the repository is split by role or ownership.
 
 Typical outputs:
 - `AGENTS.md`
-- role guides and status docs
-- handoff docs
-- phase instructions
+- `CLAUDE.md` when Claude Code should use the workflow
+- role guides and status docs under `docs/collaboration/`
+- handoff docs under `docs/collaboration/`
+- phase instructions under `docs/governance/` or `docs/collaboration/`
 - explicit editable / read-only / forbidden paths per role
 
 ### Iterative Mode
@@ -121,12 +141,17 @@ Use this when the repository is evolving as one product.
 Typical outputs:
 - `README.md`
 - `AGENTS.md`
-- `STATUS.md`
-- `WORKFLOW.md`
-- `RELEASES.md`
+- `CLAUDE.md` when Claude Code should use the workflow
+- `docs/governance/STATUS.md`
+- `docs/governance/WORKFLOW.md`
+- `docs/governance/RELEASES.md`
+- `docs/governance/context/` when CodeMap or context bundles are needed
 - `docs/product/CURRENT.md`
 - versioned product docs under `docs/product/vX.Y/`
-- `archive/`
+- requirements under `docs/product/vX.Y/requirements/`
+- phase plans under `docs/product/vX.Y/phases/PHASE-*/`
+- SPEC docs under `docs/product/vX.Y/phases/PHASE-*/specs/`
+- historical snapshots under `docs/archive/`
 
 ## Mode Comparison
 
@@ -134,9 +159,10 @@ Typical outputs:
 | --- | --- | --- |
 | Best for | Role-split teams | One shared product flow |
 | Primary focus | Ownership boundaries and handoffs | Current version and archive flow |
-| Main structure | Role guides, status docs, handoff docs | Versioned docs under `docs/product/` |
+| Main structure | Role guides, status docs, handoff docs under `docs/` | Versioned docs under `docs/product/` |
 | Current entrypoint | Role-specific working docs | One active version marked current |
-| Boundary rules | Editable / read-only / forbidden paths by role | One current version, archive is historical only |
+| Boundary rules | Editable / read-only / forbidden paths by role | One current version, archive is historical only, docs stay local-only in Git by default |
+| SDD-RIPER fit | Role approvals, handoffs, Reverse Sync owners | Requirements, phase plans, phase specs, review records |
 | Typical question flow | Mode, role, phase doc, edit boundaries, language | Mode, version/phase, language, archive/current setup |
 
 ## Example Scenarios
@@ -156,7 +182,13 @@ Use $project-doc-modes to inspect this repository, confirm the current role and 
 ### Migrate Existing Docs Into a Versioned Flow
 
 ```text
-Use $project-doc-modes to migrate this repository to iterative mode, keep current docs in Chinese, and move replaced material into archive.
+Use $project-doc-modes to migrate this repository to iterative mode, keep current docs in Chinese, and snapshot replaced material into docs/archive.
+```
+
+### Add Team Vibe Coding Gates
+
+```text
+Use $project-doc-modes to add SDD-RIPER governance to this repository, keep generated docs local-only in Git, and organize docs as PRD -> PHASE -> SPEC.
 ```
 
 ## Language Support
@@ -175,7 +207,7 @@ The selected language affects:
 ## Runtime Support
 
 - Codex: use [`SKILL.md`](SKILL.md) with [`agents/openai.yaml`](agents/openai.yaml) as the UI convenience layer
-- Claude Code: use [`CLAUDE.md`](CLAUDE.md) and [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md) as thin wrappers around the same `SKILL.md`
+- Claude Code: use [`CLAUDE.md`](CLAUDE.md), [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md), and [`.claude/commands/sdd.md`](.claude/commands/sdd.md) as thin wrappers around the same `SKILL.md`
 
 ## Testing
 
@@ -187,7 +219,7 @@ python3 scripts/test_runtime_install.py
 
 Local end-to-end checks already run for this repository:
 - Codex: installed into `~/.codex/skills/project-doc-modes`, passed `quick_validate.py`, and successfully triggered via `codex exec` with `$project-doc-modes`
-- Claude Code: installed into a temporary repo and successfully triggered via `claude -p` with `/project-doc-modes`
+- Claude Code: installed into a temporary repo and successfully triggered via `claude -p` with `/project-doc-modes`; `/sdd` is installed as the SDD-RIPER shortcut
 
 For the full testing guide, see [TESTING.md](TESTING.md).
 
@@ -198,11 +230,13 @@ For the full testing guide, see [TESTING.md](TESTING.md).
 - [TESTING.zh-CN.md](TESTING.zh-CN.md): Chinese testing guide
 - [CLAUDE.md](CLAUDE.md): Claude Code project memory entrypoint
 - [.claude/commands/project-doc-modes.md](.claude/commands/project-doc-modes.md): Claude Code project slash command
+- [.claude/commands/sdd.md](.claude/commands/sdd.md): Claude Code SDD-RIPER shortcut command
 - [agents/openai.yaml](agents/openai.yaml): UI metadata and default prompt
 - [scripts/install_runtime.py](scripts/install_runtime.py): runtime-aware installer
 - [scripts/test_runtime_install.py](scripts/test_runtime_install.py): Codex/Claude smoke test
 - [references/collaboration-mode.md](references/collaboration-mode.md): collaboration-mode reference
 - [references/iterative-mode.md](references/iterative-mode.md): iterative-mode reference
+- [references/sdd-riper.md](references/sdd-riper.md): SDD-RIPER and team vibe coding reference
 - [references/verification.md](references/verification.md): verification checklist
 
 ## Example Trigger

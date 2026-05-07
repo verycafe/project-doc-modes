@@ -50,7 +50,7 @@ Ambiguous auto-detection verified.
 这一步会确认：
 
 - Codex 只安装 `SKILL.md`、`references/`、`agents/openai.yaml`
-- Claude Code 只安装 `SKILL.md`、`references/`、`CLAUDE.md`、`.claude/commands/project-doc-modes.md`
+- Claude Code 只安装 `SKILL.md`、`references/`、`CLAUDE.md`、`.claude/commands/project-doc-modes.md` 和 `.claude/commands/sdd.md`
 - 自动检测遇到歧义目标时会拒绝猜测
 
 ## 手动端到端测试
@@ -101,10 +101,17 @@ python3 scripts/install_runtime.py /path/to/repo --runtime claude --force
 /project-doc-modes
 ```
 
+SDD-RIPER 快捷命令：
+
+```text
+/sdd
+```
+
 也可以直接用 CLI：
 
 ```bash
 claude -p '/project-doc-modes inspect this repository and answer in one short sentence what kind of repo it is and what your first setup question would be.'
+claude -p '/sdd inspect this repository and answer in one short sentence what setup question you need before adding SDD-RIPER governance.'
 ```
 
 预期成功信号：
@@ -119,7 +126,7 @@ claude -p '/project-doc-modes inspect this repository and answer in one short se
 
 - Codex 通过 `codex exec` 完成了真实触发
 - Claude Code 通过 `claude -p` 完成了真实触发
-- Claude 的项目级命令发现路径来自 `.claude/commands/project-doc-modes.md`
+- Claude 的项目级命令发现路径来自 `.claude/commands/project-doc-modes.md` 和 `.claude/commands/sdd.md`
 
 ## 常见问题
 

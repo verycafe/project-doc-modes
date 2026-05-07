@@ -50,7 +50,7 @@ Ambiguous auto-detection verified.
 This confirms:
 
 - Codex installs only `SKILL.md`, `references/`, and `agents/openai.yaml`
-- Claude Code installs only `SKILL.md`, `references/`, `CLAUDE.md`, and `.claude/commands/project-doc-modes.md`
+- Claude Code installs only `SKILL.md`, `references/`, `CLAUDE.md`, `.claude/commands/project-doc-modes.md`, and `.claude/commands/sdd.md`
 - auto-detection refuses ambiguous targets instead of guessing
 
 ## Manual End-To-End
@@ -101,10 +101,17 @@ python3 scripts/install_runtime.py /path/to/repo --runtime claude --force
 /project-doc-modes
 ```
 
+For the SDD-RIPER shortcut:
+
+```text
+/sdd
+```
+
 Or use the CLI:
 
 ```bash
 claude -p '/project-doc-modes inspect this repository and answer in one short sentence what kind of repo it is and what your first setup question would be.'
+claude -p '/sdd inspect this repository and answer in one short sentence what setup question you need before adding SDD-RIPER governance.'
 ```
 
 Expected signs of success:
@@ -119,7 +126,7 @@ The most recent local maintainer run verified:
 
 - Codex end-to-end trigger via `codex exec`
 - Claude Code end-to-end trigger via `claude -p`
-- project-local Claude command discovery through `.claude/commands/project-doc-modes.md`
+- project-local Claude command discovery through `.claude/commands/project-doc-modes.md` and `.claude/commands/sdd.md`
 
 ## Troubleshooting
 

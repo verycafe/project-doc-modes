@@ -16,15 +16,29 @@ This mode is for projects where:
 ```text
 repo/
 ├── AGENTS.md
-├── DEV-A/
-│   └── handoff or interface docs
+├── CLAUDE.md
+├── README.md
 ├── docs/
-│   └── dev-b/
-│       ├── GUIDE.md
-│       ├── STATUS.md
-│       ├── DEV_A_HANDOFF.md
-│       ├── DEVB_MASTER.md
-│       └── Phase*_Week*_Instructions.md
+│   ├── README.md
+│   ├── governance/
+│   │   ├── STATUS.md
+│   │   ├── WORKFLOW.md
+│   │   ├── HANDOFF_RULES.md
+│   │   └── context/
+│   │       ├── CODEMAP.md
+│   │       └── CONTEXT_BUNDLE.md
+│   ├── collaboration/
+│   │   ├── ROLE_MATRIX.md
+│   │   ├── dev-a/
+│   │   │   ├── GUIDE.md
+│   │   │   ├── STATUS.md
+│   │   │   └── HANDOFF.md
+│   │   └── dev-b/
+│   │       ├── GUIDE.md
+│   │       ├── STATUS.md
+│   │       └── DEV_A_HANDOFF.md
+│   └── archive/
+│       └── README.md
 ├── engine/   # owned by one side
 ├── api/      # owned by another side
 └── web/
@@ -42,13 +56,24 @@ repo/
   - define read-only directories or docs for each role
   - define required reading order before work starts
   - define verification commands
+- `CLAUDE.md` when Claude Code should use the workflow
+- `README.md`
+
+No other generated root Markdown is allowed unless the user explicitly asks for it.
 
 ### Role-specific docs
 
-- role guide
-- role status board
-- handoff document from the other side
-- staged instructions such as phase/week/day docs
+- role guide under `docs/collaboration/<role>/`
+- role status board under `docs/collaboration/<role>/`
+- handoff document from the other side under `docs/collaboration/<role>/`
+- staged instructions under `docs/governance/` or `docs/collaboration/`
+- shared role matrix under `docs/collaboration/ROLE_MATRIX.md`
+
+When SDD-RIPER is active, role docs must name:
+- the current RIPER stage
+- who may approve specs and plans
+- which role owns Reverse Sync updates
+- which handoff is required before execution crosses a role boundary
 
 ## Required Rules
 
@@ -59,6 +84,9 @@ repo/
 - what verification commands must be run
 - what status file must be updated after each task
 - what handoff document is required before crossing a role boundary
+- generated docs must not be staged, committed, or pushed unless the user asks
+- newly generated untracked docs should be kept local through `.git/info/exclude`, not repository `.gitignore`
+- historical material belongs under `docs/archive/`
 
 ## Default Documentation-Only Pattern
 
@@ -68,7 +96,7 @@ Typical default pattern:
 - each role may edit its own role folder
 - each role may edit its outgoing handoff doc
 - shared phase docs are read-only unless explicitly assigned
-- archive remains controlled and should not be used as a current working area
+- `docs/archive/` remains controlled and should not be used as a current working area
 
 ## Do Not Mix With Iterative Mode By Default
 
@@ -77,6 +105,8 @@ Avoid having both of these active at the same time unless the user explicitly wa
 - versioned current docs
 
 If migrating away from collaboration mode:
-- move the old role docs into archive
+- copy the old role docs into `docs/archive/` before rewriting current docs
 - keep them available for history
 - remove them from current entrypoints
+
+Only clear the current collaboration docs when the user explicitly requests a full reset.

@@ -19,6 +19,7 @@ CODEX_ONLY_PATHS = [
 CLAUDE_ONLY_PATHS = [
     Path("CLAUDE.md"),
     Path(".claude/commands/project-doc-modes.md"),
+    Path(".claude/commands/sdd.md"),
 ]
 
 

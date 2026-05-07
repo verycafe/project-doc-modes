@@ -4,7 +4,7 @@ This repository ships a Markdown-first workflow for scaffolding, reorganizing, a
 
 See @SKILL.md for the source-of-truth workflow.
 
-When using this workflow in Claude Code:
+When using this workflow in Codex:
 
 - keep `SKILL.md` and the files under `references/` as the canonical instructions
 - inspect the target repository before creating or moving Markdown files
@@ -20,4 +20,4 @@ When using this workflow in Claude Code:
 - preserve existing runtime code roots unless the user explicitly asks to move them
 - run the verification checklist before claiming completion
 
-The general slash command for this workflow lives at `.claude/commands/project-doc-modes.md`; the SDD-RIPER shortcut lives at `.claude/commands/sdd.md`.
+The Claude Code slash commands live at `.claude/commands/project-doc-modes.md` and `.claude/commands/sdd.md`; Codex uses `SKILL.md` and `agents/openai.yaml`.

@@ -61,14 +61,17 @@ def main() -> int:
 
         assert_exists(codex_target / "SKILL.md")
         assert_exists(codex_target / "references" / "verification.md")
+        assert_exists(codex_target / "references" / "sdd-riper.md")
         assert_exists(codex_target / "agents" / "openai.yaml")
         assert_missing(codex_target / "CLAUDE.md")
         assert_missing(codex_target / ".claude")
 
         assert_exists(claude_target / "SKILL.md")
         assert_exists(claude_target / "references" / "verification.md")
+        assert_exists(claude_target / "references" / "sdd-riper.md")
         assert_exists(claude_target / "CLAUDE.md")
         assert_exists(claude_target / ".claude" / "commands" / "project-doc-modes.md")
+        assert_exists(claude_target / ".claude" / "commands" / "sdd.md")
         assert_missing(claude_target / "agents")
 
         validate_result = run([sys.executable, str(VALIDATOR), str(codex_target)])
