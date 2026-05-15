@@ -44,9 +44,9 @@ def parse_args() -> argparse.Namespace:
         nargs="?",
         help=(
             "Destination root. For Codex, this must be the skill directory "
-            "(for example ~/.codex/skills/project-doc-modes). For Claude Code, "
+            "(for example $CODEX_HOME/skills/project-doc-modes). For Claude Code, "
             "this must be the user-level skill directory "
-            "(for example ~/.claude/skills/project-doc-modes)."
+            "(for example $CLAUDE_HOME/skills/project-doc-modes)."
         ),
     )
     parser.add_argument(
@@ -86,7 +86,7 @@ def detect_runtime(target: Path) -> str:
         raise ValueError(
             "Refusing to install Claude runtime files into a repository root. "
             "Use a Claude user-level skill target such as "
-            "~/.claude/skills/project-doc-modes."
+            f"{expected_target_hint('claude')}."
         )
 
     if target.name == "project-doc-modes" and target.parent.name == "skills":
@@ -109,16 +109,29 @@ def marker_for_runtime(runtime: str) -> str:
     raise ValueError(f"Unsupported runtime: {runtime}")
 
 
-def expected_target_hint(runtime: str) -> str:
+def home_env_for_runtime(runtime: str) -> str:
     if runtime == "codex":
-        return "~/.codex/skills/project-doc-modes"
+        return "CODEX_HOME"
     if runtime == "claude":
-        return "~/.claude/skills/project-doc-modes"
+        return "CLAUDE_HOME"
     raise ValueError(f"Unsupported runtime: {runtime}")
 
 
+def runtime_home(runtime: str) -> Path:
+    env_value = os.environ.get(home_env_for_runtime(runtime))
+    if env_value:
+        return Path(env_value).expanduser().resolve()
+    return (Path.home() / marker_for_runtime(runtime)).resolve()
+
+
+def expected_target_hint(runtime: str) -> str:
+    env_name = home_env_for_runtime(runtime)
+    default = f"$HOME/{marker_for_runtime(runtime)}/skills/{SKILL_NAME}"
+    return f"${env_name}/skills/{SKILL_NAME} (default: {default})"
+
+
 def expected_skill_target(runtime: str) -> Path:
-    return (Path.home() / marker_for_runtime(runtime) / "skills" / SKILL_NAME).resolve()
+    return (runtime_home(runtime) / "skills" / SKILL_NAME).resolve()
 
 
 def is_standard_skill_target(target: Path, runtime: str) -> bool:
@@ -275,14 +288,8 @@ def remove_empty_dirs(stop_at: Path, candidates: list[Path]) -> None:
             path = path.parent
 
 
-def claude_home_for_skill_target(target_root: Path) -> Path:
-    parts = target_root.parts
-    claude_index = parts.index(".claude")
-    return Path(*parts[: claude_index + 1])
-
-
 def claude_command_paths(skill_root: Path) -> list[Path]:
-    commands_root = claude_home_for_skill_target(skill_root) / "commands"
+    commands_root = runtime_home("claude") / "commands"
     return [commands_root / "project-doc-modes.md", commands_root / "sdd.md"]
 
 
@@ -381,8 +388,7 @@ $ARGUMENTS
 
 
 def install_claude_commands(skill_root: Path, force: bool) -> list[Path]:
-    claude_home = claude_home_for_skill_target(skill_root)
-    commands_root = claude_home / "commands"
+    commands_root = runtime_home("claude") / "commands"
     commands_root.mkdir(parents=True, exist_ok=True)
 
     installed: list[Path] = []
@@ -450,8 +456,15 @@ def run_cli_with_script(
 
 
 def run_self_test() -> int:
-    original_home = os.environ.get("HOME")
+    original_env = {
+        "HOME": os.environ.get("HOME"),
+        "CODEX_HOME": os.environ.get("CODEX_HOME"),
+        "CLAUDE_HOME": os.environ.get("CLAUDE_HOME"),
+    }
     try:
+        os.environ.pop("CODEX_HOME", None)
+        os.environ.pop("CLAUDE_HOME", None)
+
         with tempfile.TemporaryDirectory(prefix=f"{SKILL_NAME}-install-test-") as temp_dir:
             test_root = Path(temp_dir)
 
@@ -491,7 +504,7 @@ def run_self_test() -> int:
             install("claude", claude_target, force=True)
             require_equal("claude payload after cleanup", relative_files(claude_target), ["SKILL.md", "references/rules.md"])
             require("agents" not in relative_dirs(claude_target), "claude force install left stale agents directory")
-            commands_root = Path.home().resolve() / ".claude" / "commands"
+            commands_root = runtime_home("claude") / "commands"
             require_equal(
                 "claude commands",
                 relative_files(commands_root),
@@ -515,6 +528,33 @@ def run_self_test() -> int:
                 require("$ARGUMENTS" in command_text_value, "missing argument passthrough")
                 require("agents/openai.yaml" not in command_text_value, "claude command leaked Codex-only file")
                 require(str(test_root) not in command_text_value, "claude command leaked temp absolute path")
+
+            os.environ["HOME"] = str(test_root / "home-custom-runtime")
+            os.environ["CODEX_HOME"] = str(test_root / "custom-codex-home")
+            custom_codex_target = expected_skill_target("codex")
+            install("codex", custom_codex_target, force=True)
+            require_equal(
+                "custom codex payload",
+                relative_files(custom_codex_target),
+                ["SKILL.md", "references/rules.md"],
+            )
+            os.environ.pop("CODEX_HOME", None)
+
+            os.environ["CLAUDE_HOME"] = str(test_root / "custom-claude-home")
+            custom_claude_target = expected_skill_target("claude")
+            install("claude", custom_claude_target, force=True)
+            require_equal(
+                "custom claude payload",
+                relative_files(custom_claude_target),
+                ["SKILL.md", "references/rules.md"],
+            )
+            custom_commands_root = runtime_home("claude") / "commands"
+            require_equal(
+                "custom claude commands",
+                relative_files(custom_commands_root),
+                ["project-doc-modes.md", "sdd.md"],
+            )
+            os.environ.pop("CLAUDE_HOME", None)
 
             os.environ["HOME"] = str(test_root / "home-wrong")
             wrong_target = (test_root / "not-a-standard-skill" / SKILL_NAME).resolve()
@@ -592,10 +632,11 @@ def run_self_test() -> int:
                 ["project-doc-modes.md", "sdd.md"],
             )
     finally:
-        if original_home is None:
-            os.environ.pop("HOME", None)
-        else:
-            os.environ["HOME"] = original_home
+        for name, value in original_env.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
 
     print("self-test: ok")
     return 0

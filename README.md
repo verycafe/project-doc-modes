@@ -10,27 +10,52 @@
 
 ## 安装
 
+安装目录就是 Codex / Claude Code 的默认 Skill 文件夹：
+
+```text
+Codex:      ${CODEX_HOME:-$HOME/.codex}/skills/project-doc-modes
+Claude Code: ${CLAUDE_HOME:-$HOME/.claude}/skills/project-doc-modes
+```
+
+不要把这个 GitHub 仓库直接 clone 到默认 Skill 文件夹。GitHub 仓库是原始包，包含 README、配图、脚本等维护文件；默认 Skill 文件夹里只应该保留运行时必要规则文件。
+
+下面命令使用安装者自己的 `$HOME`。它不是项目路径，也不会被写进目标项目文档。若你的 Codex 或 Claude Code 使用了自定义 home 目录，先设置 `CODEX_HOME` 或 `CLAUDE_HOME`。
+
 安装到 Codex：
 
 ```bash
-git clone https://github.com/verycafe/project-doc-modes.git ~/.codex/skills/project-doc-modes
+CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+tmp="$(mktemp -d)"
+git clone --depth 1 https://github.com/verycafe/project-doc-modes.git "$tmp/project-doc-modes"
+python3 "$tmp/project-doc-modes/scripts/install_runtime.py" "$CODEX_HOME/skills/project-doc-modes" --runtime codex --force
+rm -rf "$tmp"
 ```
 
 安装到 Claude Code：
 
 ```bash
-git clone https://github.com/verycafe/project-doc-modes.git ~/.claude/skills/project-doc-modes
+CLAUDE_HOME="${CLAUDE_HOME:-$HOME/.claude}"
+tmp="$(mktemp -d)"
+git clone --depth 1 https://github.com/verycafe/project-doc-modes.git "$tmp/project-doc-modes"
+python3 "$tmp/project-doc-modes/scripts/install_runtime.py" "$CLAUDE_HOME/skills/project-doc-modes" --runtime claude --force
+rm -rf "$tmp"
 ```
 
-GitHub 原始包会完整 clone 到本地 Skill 目录，但这仍然只是安装 Skill，不会在任何目标项目中生成文档。
+安装完成后，运行时 Skill 目录只包含：
 
-如果 Claude Code 需要 `/project-doc-modes` 和 `/sdd` 这两个用户级命令，安装后再运行一次同步脚本生成命令包装：
-
-```bash
-python3 ~/.claude/skills/project-doc-modes/scripts/install_runtime.py ~/.claude/skills/project-doc-modes --runtime claude --force
+```text
+SKILL.md
+references/rules.md
 ```
 
-`scripts/install_runtime.py` 是运行时同步和维护脚本，用于升级已安装 Skill、生成 Claude Code 用户级命令、清理旧安装残留和运行自测；它不是普通用户的主安装入口。
+Claude Code 安装还会生成用户级命令包装：
+
+```text
+$CLAUDE_HOME/commands/project-doc-modes.md
+$CLAUDE_HOME/commands/sdd.md
+```
+
+`scripts/install_runtime.py` 是安装和同步脚本，只负责把原始包转换成最小运行时 payload、生成 Claude Code 命令包装、清理旧安装残留和运行自测。它不会在用户的目标项目里生成文档。
 
 GitHub 上的 Skill 原始包包含：
 
