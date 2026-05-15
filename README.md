@@ -1,249 +1,179 @@
 # project-doc-modes
 
-[中文说明](README.zh-CN.md)
+`project-doc-modes` 是一个 Markdown-first 的文档治理 Skill。GitHub 仓库只保存 Skill 原始包；用户安装后，只有在自己的目标项目中激活这个 Skill，才会生成该项目自己的 `AGENTS.md`、`CLAUDE.md`、`README.md` 和 `docs/` 文档结构。
 
-[Quick Start](#quick-start) · [Mode Comparison](#mode-comparison) · [Example Scenarios](#example-scenarios) · [Testing](#testing) · [Repository Contents](#repository-contents)
+## 配图
 
-`project-doc-modes` is a Markdown-first repository-doc workflow packaged for both Codex and Claude Code. It scaffolds, reorganizes, and migrates repository documentation into one of two operating styles:
+```mermaid
+flowchart LR
+    subgraph P1["1 安装 Skill 原始包"]
+        A1["GitHub 仓库<br/>只保存 Skill 原始文件"]
+        A2["install_runtime.py"]
+        A3["安装到 Codex<br/>~/.codex/skills/project-doc-modes"]
+        A4["安装到 Claude Code<br/>~/.claude/skills/project-doc-modes"]
+        A1 --> A2
+        A2 --> A3
+        A2 --> A4
+    end
 
-- `collaboration mode`: role-split ownership, handoff docs, edit boundaries, and role-specific working rules
-- `iterative mode`: one active versioned source of truth, repo-wide governance docs, and archive-friendly version flow
+    subgraph P2["2 在目标项目中激活"]
+        B1["打开用户项目"]
+        B2["Codex: project-doc-modes"]
+        B3["Claude: /project-doc-modes 或 /sdd"]
+        B4["先检查仓库结构<br/>Git 状态 / 代码目录 / 文档路径"]
+        B1 --> B2
+        B1 --> B3
+        B2 --> B4
+        B3 --> B4
+    end
 
-It is designed to ask a few short setup questions first, then generate the right documentation structure in either Chinese or English.
+    subgraph P3["3 先备份再理解"]
+        C1{"已有文档？"}
+        C2["先复制到 docs/archive/"]
+        C3["备份存在后<br/>再阅读旧文档"]
+        C4["结合真实代码和配置<br/>校验文档逻辑"]
+        C5["MIGRATION_NOTES.tmp.md<br/>临时记录避免失忆"]
+        C1 -- "有" --> C2 --> C3 --> C4 --> C5
+        C1 -- "无" --> C4
+    end
 
-## What This Skill Does
+    subgraph P4["4 生成规范文档结构"]
+        D1["AGENTS.md<br/>跨 agent 主规则入口"]
+        D2["CLAUDE.md<br/>桥接到 AGENTS.md"]
+        D3["docs/product/vX.Y<br/>PRD -> PHASE -> SPEC"]
+        D4["docs/governance<br/>状态 / 工作流 / 上下文"]
+        D5["docs/archive<br/>历史快照"]
+        D1 --- D2
+        D3 --- D4
+        D4 --- D5
+    end
 
-- Inspects the target repository before changing docs
-- Asks short interactive setup questions instead of dumping a long checklist
-- Supports both Chinese and English for prompts, labels, and generated Markdown
-- Preserves existing code directories unless the user explicitly asks to move them
-- Builds current-entry docs, governance files, handoff docs, and archive structure
-- Keeps generated docs local-only in Git by default unless the user asks to track them
-- Separates requirements, phase plans, and SPEC docs as `PRD -> PHASE -> SPEC`
-- Supports SDD-RIPER gates for team vibe coding: research, plan approval, execution, review, and Reverse Sync
-- Works as a Codex skill and as a Claude Code slash command without forking the core workflow
+    subgraph P5["5 执行治理和验证"]
+        E1["生成文档默认 local-only"]
+        E2["不得删除或修改用户代码逻辑"]
+        E3["升级时复制归档<br/>不清空 docs/"]
+        E4["校验泄漏、结构、Git 状态"]
+        E5["SDD-RIPER<br/>Spec Review / Plan / Execute / Reverse Sync"]
+        E1 --> E2 --> E3 --> E4 --> E5
+    end
 
-## Quick Start
-
-### Codex
-
-Use one of these prompts in Codex:
-
-```text
-Use $project-doc-modes to inspect this repository, ask one or two short setup questions at a time, confirm the needed context, then scaffold the docs.
+    P1 --> P2 --> P3 --> P4 --> P5
 ```
 
-```text
-Use $project-doc-modes to set up this repository in collaboration mode and keep the docs in English.
-```
+## 安装
 
-```text
-Use $project-doc-modes to migrate this repository to iterative mode and make docs/product/v0.1 the current source of truth.
-```
-
-```text
-Use $project-doc-modes SDD to add SDD-RIPER governance and organize docs as PRD -> PHASE -> SPEC.
-```
-
-### Claude Code
-
-This repository includes project memory in [`CLAUDE.md`](CLAUDE.md), a general slash command at [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md), and an SDD shortcut at [`.claude/commands/sdd.md`](.claude/commands/sdd.md).
-
-In Claude Code, open the repository and use:
-
-```text
-/project-doc-modes
-```
-
-For SDD-RIPER, use the short command:
-
-```text
-/sdd
-```
-
-You can also pass extra intent inline:
-
-```text
-/project-doc-modes migrate this repository to iterative mode and keep the docs in Chinese
-```
-
-```text
-/sdd start Phase 1 in Chinese and keep generated docs local-only
-```
-
-## Install
-
-Use [`scripts/install_runtime.py`](scripts/install_runtime.py) when you want a runtime-specific install without copying the other runtime's wrapper files.
-
-### Install For Codex
+Codex:
 
 ```bash
 python3 scripts/install_runtime.py ~/.codex/skills/project-doc-modes --runtime codex --force
 ```
 
-After installing or updating a custom Codex skill, restart Codex so the app reloads the skills directory.
-
-Installed file set:
-- `SKILL.md`
-- `references/`
-- `agents/openai.yaml`
-
-Not installed:
-- `CLAUDE.md`
-- `.claude/commands/project-doc-modes.md`
-- `.claude/commands/sdd.md`
-
-### Install For Claude Code
+Claude Code:
 
 ```bash
 python3 scripts/install_runtime.py ~/.claude/skills/project-doc-modes --runtime claude --force
 ```
 
-Installed file set:
-- `SKILL.md`
-- `references/`
+Claude Code 安装后会额外生成用户级命令：
 
-Also written:
-- `~/.claude/commands/project-doc-modes.md`
-- `~/.claude/commands/sdd.md`
+```text
+~/.claude/commands/project-doc-modes.md
+~/.claude/commands/sdd.md
+```
 
-Not installed:
-- `agents/openai.yaml`
-- target repository root files such as `SKILL.md`, `references/`, or command wrappers
-
-### Auto-Detect The Runtime
+安装自测：
 
 ```bash
-python3 scripts/install_runtime.py /target/path --runtime auto
+python3 scripts/install_runtime.py --self-test
 ```
 
-Auto-detection rules:
-- install as Codex only when the target path is the current user's standard Codex skill directory: `~/.codex/skills/project-doc-modes`
-- install as Claude Code only when the target path is the current user's standard Claude skill directory: `~/.claude/skills/project-doc-modes`
-- refuse nonstandard targets and any target inside a repository tree so runtime files are not copied into project documentation
-- stop and ask for an explicit runtime when the target path is ambiguous
-
-## Modes
-
-### Collaboration Mode
-
-Use this when the repository is split by role or ownership.
-
-Typical outputs:
-- `AGENTS.md`
-- `CLAUDE.md` bridge when Claude Code should use the workflow
-- role guides and status docs under `docs/collaboration/`
-- handoff docs under `docs/collaboration/`
-- phase instructions under `docs/governance/` or `docs/collaboration/`
-- explicit editable / read-only / forbidden paths per role
-
-### Iterative Mode
-
-Use this when the repository is evolving as one product.
-
-Typical outputs:
-- `README.md`
-- `AGENTS.md`
-- `CLAUDE.md` bridge when Claude Code should use the workflow
-- `docs/governance/STATUS.md`
-- `docs/governance/WORKFLOW.md`
-- `docs/governance/RELEASES.md`
-- `docs/governance/context/` when CodeMap or context bundles are needed
-- `docs/product/CURRENT.md`
-- versioned product docs under `docs/product/vX.Y/`
-- requirements under `docs/product/vX.Y/requirements/`
-- phase plans under `docs/product/vX.Y/phases/PHASE-*/`
-- SPEC docs under `docs/product/vX.Y/phases/PHASE-*/specs/`
-- historical snapshots under `docs/archive/`
-
-## Mode Comparison
-
-| Topic | Collaboration Mode | Iterative Mode |
-| --- | --- | --- |
-| Best for | Role-split teams | One shared product flow |
-| Primary focus | Ownership boundaries and handoffs | Current version and archive flow |
-| Main structure | Role guides, status docs, handoff docs under `docs/` | Versioned docs under `docs/product/` |
-| Current entrypoint | Role-specific working docs | One active version marked current |
-| Boundary rules | Editable / read-only / forbidden paths by role | One current version, archive is historical only, docs stay local-only in Git by default |
-| SDD-RIPER fit | Role approvals, handoffs, Reverse Sync owners | Requirements, phase plans, phase specs, review records |
-| Typical question flow | Mode, role, phase doc, edit boundaries, language | Mode, version/phase, language, archive/current setup |
-
-## Example Scenarios
-
-### Start an Empty Repository
+GitHub 上的 Skill 原始包只包含：
 
 ```text
-Use $project-doc-modes to inspect this empty repository, ask short setup questions in English, and scaffold it in iterative mode with v0.1 as the current version.
+.gitignore
+README.md
+SKILL.md
+agents/openai.yaml
+references/rules.md
+scripts/install_runtime.py
 ```
 
-### Organize a Role-Split Repository
+## 使用
+
+在目标项目中打开 Codex，然后激活 `project-doc-modes` Skill。
+
+在 Claude Code 中进入目标项目后使用：
 
 ```text
-Use $project-doc-modes to inspect this repository, confirm the current role and edit boundaries, then set it up in collaboration mode.
+/project-doc-modes
 ```
 
-### Migrate Existing Docs Into a Versioned Flow
+如需启用 SDD-RIPER / 团队氛围编码治理，使用：
 
 ```text
-Use $project-doc-modes to migrate this repository to iterative mode, keep current docs in Chinese, and snapshot replaced material into docs/archive.
+/sdd
 ```
 
-### Add Team Vibe Coding Gates
+激活后，Skill 会先检查目标项目，再用少量问题确认模式、语言、版本、阶段或角色边界，然后才创建或迁移文档。
+
+## 项目结构
+
+初始化后的目标项目文档结构通常是：
 
 ```text
-Use $project-doc-modes to add SDD-RIPER governance to this repository, keep generated docs local-only in Git, and organize docs as PRD -> PHASE -> SPEC.
+.
+├── AGENTS.md
+├── CLAUDE.md
+├── README.md
+└── docs/
+    ├── README.md
+    ├── archive/
+    ├── governance/
+    │   ├── STATUS.md
+    │   ├── WORKFLOW.md
+    │   ├── RELEASES.md
+    │   └── context/
+    │       ├── CODEMAP.md
+    │       ├── CONTEXT_BUNDLE.md
+    │       └── MIGRATION_NOTES.tmp.md
+    └── product/
+        ├── CURRENT.md
+        └── v0.1/
+            ├── README.md
+            ├── requirements/
+            ├── phases/
+            │   └── PHASE-*/
+            │       ├── PLAN.md
+            │       ├── REVIEW.md
+            │       ├── IMPLEMENTATION_RECORD.md
+            │       └── specs/
+            └── decisions/
 ```
 
-## Language Support
+协作模式会使用 `docs/collaboration/` 管理角色、边界、状态和交接文档。迭代模式会使用 `docs/product/vX.Y/` 管理版本化产品文档。SDD-RIPER 可以叠加在任一模式上。
 
-This skill supports two language modes:
+## 工作流程
 
-- Chinese
-- English
+1. 安装 Skill 到 Codex 或 Claude Code。
+2. 在目标项目中激活 Skill。
+3. 检查仓库结构、Git 状态、代码目录、配置文件和已有文档路径。
+4. 如果已有文档，先复制一份到 `docs/archive/`，再阅读和理解文档内容。
+5. 结合真实代码和配置校验旧文档是否准确，记录不一致之处。
+6. 确认使用协作模式或迭代模式，以及语言、版本、阶段或角色边界。
+7. 按规范生成 `AGENTS.md`、`CLAUDE.md`、`README.md` 和分类 `docs/`。
+8. 运行结构、泄漏、Git local-only、代码不可变等验证。
 
-The selected language affects:
-- user-facing setup questions
-- mode labels
-- generated Markdown headings and navigation text
-- active governance and current-entry docs
+## 规范逻辑和约束
 
-## Runtime Support
-
-- Codex: use [`SKILL.md`](SKILL.md) with [`agents/openai.yaml`](agents/openai.yaml) as the UI convenience layer
-- Claude Code: use [`CLAUDE.md`](CLAUDE.md), [`.claude/commands/project-doc-modes.md`](.claude/commands/project-doc-modes.md), and [`.claude/commands/sdd.md`](.claude/commands/sdd.md) as thin wrappers around the same `SKILL.md`; generated target-project `CLAUDE.md` files should bridge Claude Code to `AGENTS.md`
-
-## Testing
-
-Run the cross-runtime smoke test to verify that the Codex and Claude installs both work and do not copy each other's wrapper files:
-
-```bash
-python3 scripts/test_runtime_install.py
-```
-
-Local end-to-end checks already run for this repository:
-- Codex: installed into `~/.codex/skills/project-doc-modes`, passed `quick_validate.py`, and successfully triggered via `codex exec` with `$project-doc-modes`
-- Claude Code: installed into a temporary user-level skill directory with global `/project-doc-modes` and `/sdd` command wrappers
-
-For the full testing guide, see [TESTING.md](TESTING.md).
-
-## Repository Contents
-
-- [SKILL.md](SKILL.md): main workflow and prompting rules
-- [TESTING.md](TESTING.md): English testing guide
-- [TESTING.zh-CN.md](TESTING.zh-CN.md): Chinese testing guide
-- [CLAUDE.md](CLAUDE.md): Claude Code bridge entrypoint
-- [.claude/commands/project-doc-modes.md](.claude/commands/project-doc-modes.md): Claude Code project slash command
-- [.claude/commands/sdd.md](.claude/commands/sdd.md): Claude Code SDD-RIPER shortcut command
-- [agents/openai.yaml](agents/openai.yaml): UI metadata and default prompt
-- [scripts/install_runtime.py](scripts/install_runtime.py): runtime-aware installer
-- [scripts/test_runtime_install.py](scripts/test_runtime_install.py): Codex/Claude smoke test
-- [references/collaboration-mode.md](references/collaboration-mode.md): collaboration-mode reference
-- [references/iterative-mode.md](references/iterative-mode.md): iterative-mode reference
-- [references/sdd-riper.md](references/sdd-riper.md): SDD-RIPER and team vibe coding reference
-- [references/verification.md](references/verification.md): verification checklist
-
-## Example Trigger
-
-```text
-Use $project-doc-modes to inspect this repository, ask one or two short setup questions at a time, confirm the needed context, then scaffold the docs.
-```
+- GitHub 仓库是 Skill 原始包，不是目标项目初始化后的文档结构。
+- 目标项目文档只在用户激活 Skill 后生成。
+- 生成文档默认不进入 Git；除非用户明确要求，否则不得 `git add`、`git commit` 或 `git push`。
+- 除 `AGENTS.md`、`CLAUDE.md`、`README.md` 外，其他生成的 Markdown 默认放在 `docs/` 下。
+- `AGENTS.md` 是跨 agent 的主治理入口；`CLAUDE.md` 必须桥接到 `AGENTS.md`，不能另起一套规则。
+- 需求、阶段、规格必须遵循 `PRD -> PHASE -> SPEC`：先需求方案，再 PHASE 规划，最后把 SPEC 拆到对应 PHASE 下。
+- 不得删除、移动、重写或重构用户代码、配置、运行逻辑、API、依赖、测试，除非用户明确要求代码变更。
+- 如果目标项目已有文档，必须先备份，再阅读、理解、迁移和重写。
+- 文档升级时默认复制当前版本到 `docs/archive/`，然后升级当前文档；不得默认清空 `docs/`。
+- 上一个版本的功能逻辑默认锁定为历史基线，除非用户明确要求修改。
+- 生成的目标项目文档不得写入 `project-doc-modes`、`/project-doc-modes`、`/sdd`、`SKILL.md` 或本机安装路径。
+- 复杂迁移可使用 `docs/governance/context/MIGRATION_NOTES.tmp.md` 做临时记录，避免迁移过程中丢失上下文。

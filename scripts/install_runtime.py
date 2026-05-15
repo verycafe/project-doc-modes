@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -12,10 +15,20 @@ ROOT = Path(__file__).resolve().parent.parent
 SKILL_NAME = "project-doc-modes"
 COMMON_PATHS = [
     Path("SKILL.md"),
-    Path("references"),
+    Path("references/rules.md"),
 ]
 CODEX_ONLY_PATHS = [
     Path("agents/openai.yaml"),
+]
+LEGACY_SKILL_PATHS = [
+    Path("references/collaboration-mode.md"),
+    Path("references/iterative-mode.md"),
+    Path("references/sdd-riper.md"),
+    Path("references/verification.md"),
+]
+MANAGED_PAYLOAD_DIRS = [
+    Path("references"),
+    Path("agents"),
 ]
 
 
@@ -28,6 +41,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "target",
+        nargs="?",
         help=(
             "Destination root. For Codex, this must be the skill directory "
             "(for example ~/.codex/skills/project-doc-modes). For Claude Code, "
@@ -46,7 +60,17 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Overwrite existing files at the destination.",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run isolated installer smoke tests and exit.",
+    )
+    args = parser.parse_args()
+    if args.self_test and args.target:
+        parser.error("--self-test does not accept a target")
+    if not args.self_test and not args.target:
+        parser.error("target is required unless --self-test is used")
+    return args
 
 
 def detect_runtime(target: Path) -> str:
@@ -209,6 +233,8 @@ def preflight_overwrites(runtime: str, target_root: Path, force: bool) -> None:
 def install(runtime: str, target_root: Path, force: bool) -> list[Path]:
     validate_install_target(runtime, target_root)
     preflight_overwrites(runtime, target_root, force=force)
+    if force:
+        cleanup_stale_runtime_files(target_root)
 
     installed: list[Path] = []
     for relative_path in selected_paths(runtime):
@@ -223,6 +249,15 @@ def install(runtime: str, target_root: Path, force: bool) -> list[Path]:
     return installed
 
 
+def cleanup_stale_runtime_files(target_root: Path) -> None:
+    stale_paths = [*MANAGED_PAYLOAD_DIRS, *LEGACY_SKILL_PATHS]
+
+    for relative_path in stale_paths:
+        path = target_root / relative_path
+        if path.exists():
+            remove_path(path)
+
+
 def claude_home_for_skill_target(target_root: Path) -> Path:
     parts = target_root.parts
     claude_index = parts.index(".claude")
@@ -234,7 +269,18 @@ def claude_command_paths(skill_root: Path) -> list[Path]:
     return [commands_root / "project-doc-modes.md", commands_root / "sdd.md"]
 
 
+def command_reference(path: Path) -> str:
+    try:
+        relative = path.resolve().relative_to(Path.home().resolve())
+    except ValueError:
+        return str(path)
+    return f"~/{relative.as_posix()}"
+
+
 def command_text(command: str, skill_root: Path) -> str:
+    skill_md = command_reference(skill_root / "SKILL.md")
+    rules_ref = command_reference(skill_root / "references" / "rules.md")
+
     if command == "project-doc-modes":
         return f"""---
 description: Inspect the repository, ask short setup questions, then scaffold or migrate docs with project-doc-modes.
@@ -246,13 +292,11 @@ Use the installed `project-doc-modes` workflow for this task.
 For SDD-RIPER-only work, `/sdd` is the shorter command, but this command may also handle SDD-RIPER when the user asks for it.
 
 Primary source of truth:
-- @{skill_root / "SKILL.md"}
+- @{skill_md}
+- @{rules_ref}
 
 Read the minimum extra context you need:
-- @{skill_root / "references" / "collaboration-mode.md"} when the repo is using `collaboration mode`
-- @{skill_root / "references" / "iterative-mode.md"} when the repo is using `iterative mode`
-- @{skill_root / "references" / "sdd-riper.md"} when the user asks for team vibe coding, SDD, or SDD-RIPER
-- @{skill_root / "references" / "verification.md"} before finishing
+- @{rules_ref} for mode-specific paths, SDD-RIPER rules, and verification before finishing
 
 Expected behavior:
 1. Inspect the target repository before changing docs.
@@ -262,13 +306,17 @@ Expected behavior:
 5. Keep root Markdown limited to `AGENTS.md`, `CLAUDE.md`, and `README.md`; put generated docs under categorized `docs/` folders.
 6. Make generated `AGENTS.md` the canonical cross-agent governance entrypoint.
 7. Make generated `CLAUDE.md` a Claude Code bridge that tells Claude to read `AGENTS.md` first.
-8. Do not write `project-doc-modes`, `/project-doc-modes`, `/sdd`, `$project-doc-modes`, `SKILL.md`, or local install paths into generated target docs.
-9. Keep generated docs local-only in Git unless the user explicitly asks to track, stage, or commit them.
-10. For iterative docs, follow `PRD -> PHASE -> SPEC`: requirements first, phase plans next, SPEC docs under each phase.
-11. When team vibe coding or SDD-RIPER is requested, read the SDD-RIPER reference and record stage, approval gates, review path, and Reverse Sync path.
-12. For upgrades, copy a snapshot into `docs/archive/` before updating current docs; do not empty `docs/` unless the user requests a full reset.
-13. Scaffold or migrate the repository docs with minimal changes.
-14. Run the verification checklist before claiming completion.
+8. Do not delete, rewrite, refactor, move, or simplify user code, tests, config, dependencies, APIs, schemas, or runtime logic unless the user explicitly asks for code changes.
+9. If existing docs are present, back them up into `docs/archive/` before reading, interpreting, moving, rewriting, or replacing doc contents.
+10. After the backup exists, read the docs and check them against the real codebase before landing the new structure.
+11. Use `docs/governance/context/MIGRATION_NOTES.tmp.md` as local-only working notes when needed to avoid losing migration context.
+12. Do not write `project-doc-modes`, `/project-doc-modes`, `/sdd`, `$project-doc-modes`, `SKILL.md`, or local install paths into generated target docs.
+13. Keep generated docs local-only in Git unless the user explicitly asks to track, stage, or commit them.
+14. For iterative docs, follow `PRD -> PHASE -> SPEC`: requirements first, phase plans next, SPEC docs under each phase.
+15. When team vibe coding or SDD-RIPER is requested, read the SDD-RIPER reference and record stage, approval gates, review path, and Reverse Sync path.
+16. For upgrades, copy a snapshot into `docs/archive/` before updating current docs; do not empty `docs/` unless the user requests a full reset.
+17. Scaffold or migrate the repository docs with minimal changes.
+18. Run the verification checklist before claiming completion.
 
 If the user supplied extra arguments, treat them as additional intent:
 
@@ -284,13 +332,11 @@ argument-hint: [goal, version, phase, or language]
 Use the installed `project-doc-modes` workflow in SDD-RIPER mode.
 
 Primary source of truth:
-- @{skill_root / "SKILL.md"}
-- @{skill_root / "references" / "sdd-riper.md"}
+- @{skill_md}
+- @{rules_ref}
 
 Read the minimum extra context you need:
-- @{skill_root / "references" / "iterative-mode.md"} when the repo should use versioned product docs
-- @{skill_root / "references" / "collaboration-mode.md"} when the repo should use role boundaries
-- @{skill_root / "references" / "verification.md"} before finishing
+- @{rules_ref} for SDD-RIPER paths, mode-specific rules, and verification before finishing
 
 Expected behavior:
 1. Inspect the target repository before changing docs.
@@ -299,11 +345,15 @@ Expected behavior:
 4. Organize work as `PRD -> PHASE -> SPEC`.
 5. Make generated `AGENTS.md` the canonical cross-agent governance entrypoint.
 6. Make generated `CLAUDE.md` a Claude Code bridge that tells Claude to read `AGENTS.md` first.
-7. Do not write `project-doc-modes`, `/project-doc-modes`, `/sdd`, `$project-doc-modes`, `SKILL.md`, or local install paths into generated target docs.
-8. Put CodeMap and context bundles under `docs/governance/context/`.
-9. Record the current RIPER stage, human approval gates, spec-vs-code review path, and Reverse Sync path.
-10. For upgrades, copy a snapshot into `docs/archive/` before updating current docs; do not empty `docs/` unless the user requests a full reset.
-11. Run the verification checklist before claiming completion.
+7. Do not delete, rewrite, refactor, move, or simplify user code, tests, config, dependencies, APIs, schemas, or runtime logic unless the user explicitly asks for code changes.
+8. If existing docs are present, back them up into `docs/archive/` before reading, interpreting, moving, rewriting, or replacing doc contents.
+9. After the backup exists, read the docs and check them against the real codebase before landing the new structure.
+10. Use `docs/governance/context/MIGRATION_NOTES.tmp.md` as local-only working notes when needed to avoid losing migration context.
+11. Do not write `project-doc-modes`, `/project-doc-modes`, `/sdd`, `$project-doc-modes`, `SKILL.md`, or local install paths into generated target docs.
+12. Put CodeMap and context bundles under `docs/governance/context/`.
+13. Record the current RIPER stage, human approval gates, spec-vs-code review path, and Reverse Sync path.
+14. For upgrades, copy a snapshot into `docs/archive/` before updating current docs; do not empty `docs/` unless the user requests a full reset.
+15. Run the verification checklist before claiming completion.
 
 If the user supplied extra arguments, treat them as additional intent:
 
@@ -331,8 +381,186 @@ def install_claude_commands(skill_root: Path, force: bool) -> list[Path]:
     return installed
 
 
+def relative_files(root: Path) -> list[str]:
+    if not root.exists():
+        return []
+    return sorted(path.relative_to(root).as_posix() for path in root.rglob("*") if path.is_file())
+
+
+def relative_dirs(root: Path) -> list[str]:
+    if not root.exists():
+        return []
+    return sorted(path.relative_to(root).as_posix() for path in root.rglob("*") if path.is_dir())
+
+
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        raise AssertionError(message)
+
+
+def require_equal(name: str, actual: list[str], expected: list[str]) -> None:
+    if actual != expected:
+        raise AssertionError(f"{name}: expected {expected}, got {actual}")
+
+
+def require_raises(name: str, expected: type[Exception], action) -> None:
+    try:
+        action()
+    except expected:
+        return
+    except Exception as exc:  # noqa: BLE001 - smoke test reports unexpected failures.
+        raise AssertionError(f"{name}: expected {expected.__name__}, got {type(exc).__name__}: {exc}") from exc
+    raise AssertionError(f"{name}: expected {expected.__name__}")
+
+
+def run_cli(args: list[str], home: Path) -> subprocess.CompletedProcess[str]:
+    env = os.environ.copy()
+    env["HOME"] = str(home)
+    return subprocess.run(
+        [sys.executable, str(Path(__file__).resolve()), *args],
+        cwd=ROOT,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+
+def run_self_test() -> int:
+    original_home = os.environ.get("HOME")
+    try:
+        with tempfile.TemporaryDirectory(prefix=f"{SKILL_NAME}-install-test-") as temp_dir:
+            test_root = Path(temp_dir)
+
+            os.environ["HOME"] = str(test_root / "home-codex")
+            codex_target = expected_skill_target("codex")
+            require(detect_runtime(codex_target) == "codex", "codex auto-detect failed")
+            install("codex", codex_target, force=False)
+            require_equal(
+                "codex payload",
+                relative_files(codex_target),
+                ["SKILL.md", "agents/openai.yaml", "references/rules.md"],
+            )
+            (codex_target / "references" / "iterative-mode.md").write_text("stale", encoding="utf-8")
+            (codex_target / "references" / "nested").mkdir()
+            install("codex", codex_target, force=True)
+            require(
+                not (codex_target / "references" / "iterative-mode.md").exists(),
+                "codex force install left stale legacy reference",
+            )
+            require(
+                not (codex_target / "references" / "nested").exists(),
+                "codex force install left stale reference directory",
+            )
+            require_raises(
+                "codex overwrite refusal",
+                FileExistsError,
+                lambda: install("codex", codex_target, force=False),
+            )
+
+            os.environ["HOME"] = str(test_root / "home-claude")
+            claude_target = expected_skill_target("claude")
+            require(detect_runtime(claude_target) == "claude", "claude auto-detect failed")
+            install("claude", claude_target, force=False)
+            require_equal("claude payload", relative_files(claude_target), ["SKILL.md", "references/rules.md"])
+            (claude_target / "agents").mkdir()
+            (claude_target / "agents" / "openai.yaml").write_text("stale", encoding="utf-8")
+            install("claude", claude_target, force=True)
+            require_equal("claude payload after cleanup", relative_files(claude_target), ["SKILL.md", "references/rules.md"])
+            require("agents" not in relative_dirs(claude_target), "claude force install left stale agents directory")
+            commands_root = Path.home().resolve() / ".claude" / "commands"
+            require_equal(
+                "claude commands",
+                relative_files(commands_root),
+                ["project-doc-modes.md", "sdd.md"],
+            )
+            (commands_root / "project-doc-modes.md").unlink()
+            (commands_root / "project-doc-modes.md").mkdir()
+            install("claude", claude_target, force=True)
+            require(
+                (commands_root / "project-doc-modes.md").is_file(),
+                "claude force install did not replace command directory",
+            )
+            project_command = (commands_root / "project-doc-modes.md").read_text(encoding="utf-8")
+            sdd_command = (commands_root / "sdd.md").read_text(encoding="utf-8")
+            for command_text_value in (project_command, sdd_command):
+                require("@~/.claude/skills/project-doc-modes/SKILL.md" in command_text_value, "missing skill reference")
+                require(
+                    "@~/.claude/skills/project-doc-modes/references/rules.md" in command_text_value,
+                    "missing rules reference",
+                )
+                require("$ARGUMENTS" in command_text_value, "missing argument passthrough")
+                require("agents/openai.yaml" not in command_text_value, "claude command leaked Codex-only file")
+                require(str(test_root) not in command_text_value, "claude command leaked temp absolute path")
+
+            os.environ["HOME"] = str(test_root / "home-wrong")
+            wrong_target = (test_root / "not-a-standard-skill" / SKILL_NAME).resolve()
+            require_raises(
+                "wrong codex target refusal",
+                ValueError,
+                lambda: install("codex", wrong_target, force=True),
+            )
+            ambiguous_target = (test_root / "skills" / SKILL_NAME).resolve()
+            require_raises("ambiguous runtime refusal", ValueError, lambda: detect_runtime(ambiguous_target))
+            repo_root = (test_root / "fake-repo").resolve()
+            (repo_root / ".git").mkdir(parents=True)
+            require_raises(
+                "repository root refusal",
+                ValueError,
+                lambda: install("claude", repo_root, force=True),
+            )
+            nested_repo_target = repo_root / ".claude" / "skills" / SKILL_NAME
+            require_raises(
+                "nested repository install refusal",
+                ValueError,
+                lambda: install("claude", nested_repo_target, force=True),
+            )
+            claude_marked_root = (test_root / "claude-marked-repo").resolve()
+            claude_marked_root.mkdir()
+            (claude_marked_root / "CLAUDE.md").write_text("repo marker", encoding="utf-8")
+            require_raises(
+                "CLAUDE.md repository marker refusal",
+                ValueError,
+                lambda: install("claude", claude_marked_root, force=True),
+            )
+
+            os.environ["HOME"] = str(test_root / "home-bad-parent")
+            Path.home().mkdir(parents=True)
+            (Path.home() / ".codex").write_text("file parent", encoding="utf-8")
+            bad_parent_target = expected_skill_target("codex")
+            require_raises(
+                "non-directory parent refusal",
+                FileExistsError,
+                lambda: install("codex", bad_parent_target, force=True),
+            )
+
+            cli_home = test_root / "home-cli"
+            cli_target = cli_home / ".codex" / "skills" / SKILL_NAME
+            cli_result = run_cli([str(cli_target), "--runtime", "codex"], cli_home)
+            require(cli_result.returncode == 0, f"cli codex install failed: {cli_result.stderr}")
+            require("runtime=codex" in cli_result.stdout, "cli stdout missing runtime")
+            cli_repeat = run_cli([str(cli_target), "--runtime", "codex"], cli_home)
+            require(cli_repeat.returncode == 2, "cli overwrite refusal returned wrong status")
+            require("Refusing to overwrite existing path" in cli_repeat.stderr, "cli overwrite stderr missing refusal")
+    finally:
+        if original_home is None:
+            os.environ.pop("HOME", None)
+        else:
+            os.environ["HOME"] = original_home
+
+    print("self-test: ok")
+    return 0
+
+
 def main() -> int:
     args = parse_args()
+    if args.self_test:
+        try:
+            return run_self_test()
+        except AssertionError as exc:
+            print(f"self-test failed: {exc}", file=sys.stderr)
+            return 1
+
     try:
         target_root = Path(args.target).expanduser().resolve()
 
