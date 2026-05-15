@@ -54,8 +54,8 @@
       <text x="80" y="70" class="small">Skill 原始包</text>
       <rect x="28" y="110" width="232" height="112" rx="10" fill="#d8ebfa" class="dark-stroke"/>
       <text x="144" y="145" text-anchor="middle" class="label">GitHub Repo</text>
-      <text x="144" y="178" text-anchor="middle" class="tiny">SKILL.md</text>
-      <text x="144" y="203" text-anchor="middle" class="tiny">references/rules.md</text>
+      <text x="144" y="178" text-anchor="middle" class="tiny">README / SKILL / assets</text>
+      <text x="144" y="203" text-anchor="middle" class="tiny">references / scripts</text>
       <path d="M144 232 L144 292" stroke="#2f6f9d" stroke-width="4" marker-end="url(#arrow)"/>
       <rect x="32" y="300" width="224" height="80" rx="12" fill="#fff" class="stroke"/>
       <text x="144" y="335" text-anchor="middle" class="label">安装到运行时</text>
@@ -104,7 +104,7 @@
       <text x="144" y="474" text-anchor="middle" class="label">备份后再阅读</text>
       <text x="144" y="507" text-anchor="middle" class="small">旧文档 + 真实代码</text>
       <text x="144" y="538" text-anchor="middle" class="small">校验逻辑是否一致</text>
-      <text x="144" y="569" text-anchor="middle" class="tiny">MIGRATION_NOTES.tmp.md</text>
+      <text x="144" y="569" text-anchor="middle" class="tiny">必要时写临时记录</text>
     </g>
 
     <g transform="translate(948 0)" filter="url(#shadow)">

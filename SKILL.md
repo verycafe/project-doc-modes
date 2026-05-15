@@ -43,6 +43,7 @@ Apply these defaults unless the user explicitly requests a different repository 
 For Git repositories, local-only means:
 - do not run `git add`, `git commit`, or `git push` unless the user asks
 - for newly generated untracked doc paths, append local ignore patterns to `.git/info/exclude` instead of editing `.gitignore`
+- include newly generated archive snapshots, such as `docs/archive/...`, in local exclude coverage when they are untracked
 - do not add `.git/info/exclude` rules for files that are already tracked
 - if a tracked root entrypoint such as `README.md`, `AGENTS.md`, or `CLAUDE.md` must change, edit it minimally and report that it remains a tracked Git change
 

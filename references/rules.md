@@ -130,7 +130,7 @@ Portability:
 Generated target-project docs are local-only in Git by default.
 
 - Do not run `git add`, `git commit`, or `git push` for generated docs unless the user explicitly asks to track, stage, commit, or push them.
-- For newly generated untracked docs, add relative paths to `.git/info/exclude`, not `.gitignore`.
+- For newly generated untracked docs, including archive snapshots under `docs/archive/`, add relative paths to `.git/info/exclude`, not `.gitignore`.
 - Do not add `.git/info/exclude` entries for files that Git already tracks; if tracked docs need to become local-only, explain the tracking state and ask before changing it.
 - If the user later asks to track generated docs, remove matching exclude entries or use an explicit user-approved Git command.
 
@@ -149,7 +149,7 @@ Structure:
 - collaboration SDD-RIPER SPEC docs sit under `docs/collaboration/sdd/phases/PHASE-*/specs/`
 - CodeMap and context bundles live under `docs/governance/context/` when SDD-RIPER is active
 - generated docs were not staged or committed unless the user explicitly requested Git tracking
-- newly generated untracked local-only docs are covered by `.git/info/exclude`
+- newly generated untracked local-only docs, including archive snapshots, are covered by `.git/info/exclude`
 
 Entrypoints:
 - root `README.md` points to active docs
@@ -162,7 +162,7 @@ Entrypoints:
 - archive docs are labeled historical and not used as active memory
 - current docs describe the project workflow directly instead of telling agents to invoke this skill
 
-	Stale reference and leakage checks:
+Stale reference and leakage checks:
 ```bash
 rg -n "old-path|old-version|legacy-mode-name" AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
 rg -n 'project-doc-modes|(^|[^[:alnum:]_./-])(/project-doc-modes|/sdd)([^[:alnum:]_./-]|$)|\$project-doc-modes|\.codex/skills|\.claude/skills|SKILL\.md' AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
