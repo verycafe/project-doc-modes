@@ -2,15 +2,13 @@
 
 `project-doc-modes` 是一个 Markdown-first 的文档治理 Skill，用来在目标项目中建立可持续的文档结构、版本治理和 SDD-RIPER 工作流。
 
-这个 GitHub 仓库只保存 Skill 原始包。安装 Skill 不会修改任何用户项目；只有用户在自己的目标项目中激活它之后，才会生成该项目自己的 `AGENTS.md`、`CLAUDE.md`、`README.md` 和 `docs/` 文档结构。
-
 ## 配图
 
 ![project-doc-modes 工作流](assets/project-doc-modes-workflow.svg)
 
 ## 安装
 
-安装请使用 `install.md`。它会从 GitHub 拉取原始包，并只把仓库内的 `project-doc-modes/` 干净 Skill 包安装到 Codex / Claude Code 的默认 Skill 文件夹。
+安装请使用 `install.md`。它会把仓库内的 `project-doc-modes/` 干净 Skill 包安装到 Codex / Claude Code 的默认 Skill 文件夹。
 
 推荐让 AI 助手执行：
 
@@ -25,7 +23,7 @@ Codex:      ${CODEX_HOME:-$HOME/.codex}/skills/project-doc-modes
 Claude Code: ${CLAUDE_HOME:-$HOME/.claude}/skills/project-doc-modes
 ```
 
-不要把这个 GitHub 仓库直接 clone 成最终 Skill 文件夹。GitHub 仓库是原始包，包含 README、安装说明、配图、脚本等维护文件；最终 Skill 文件夹里只应该保留 `project-doc-modes/` 子目录中的运行时文件。
+不要把整个仓库直接 clone 成最终 Skill 文件夹。最终 Skill 文件夹里只应该保留 `project-doc-modes/` 子目录中的运行时文件。
 
 手动安装命令也在 `install.md` 中维护，README 不重复展开，避免安装入口分叉。
 
@@ -45,7 +43,7 @@ $CLAUDE_HOME/commands/sdd.md
 
 `scripts/install_runtime.py` 是安装和同步脚本，只负责把 `project-doc-modes/` 子目录安装成最小运行时 payload、生成 Claude Code 命令包装、清理旧安装残留和运行自测。它不会在用户的目标项目里生成文档。
 
-GitHub 上的 Skill 原始包包含：
+仓库结构：
 
 ```text
 .gitignore
@@ -59,7 +57,7 @@ scripts/install_runtime.py
 
 ## 使用
 
-在目标项目中使用，而不是在这个 Skill 仓库中使用。
+在目标项目中使用。
 
 Codex：
 
@@ -124,7 +122,7 @@ Claude Code：
 ## 工作流程
 
 1. 安装 Skill 到 Codex 或 Claude Code。
-2. 在目标项目中激活 Skill，而不是在 Skill 仓库中生成项目文档。
+2. 在目标项目中激活 Skill。
 3. 检查仓库结构、Git 状态、代码目录、配置文件和已有文档路径。
 4. 如果已有文档，先复制一份到 `docs/archive/`，再阅读和理解文档内容。
 5. 结合真实代码和配置校验旧文档是否准确，记录不一致之处。
@@ -134,8 +132,6 @@ Claude Code：
 
 ## 规范逻辑和约束
 
-- GitHub 仓库是 Skill 原始包，不是目标项目初始化后的文档结构。
-- 目标项目文档只在用户激活 Skill 后生成。
 - 生成文档默认不进入 Git；除非用户明确要求，否则不得对这些文档执行 `git add`、`git commit` 或 `git push`。
 - 新生成的 `docs/archive/` 快照也属于生成文档，默认要用 `.git/info/exclude` 保持 local-only。
 - 如果目标项目已有被 Git 跟踪的 `README.md`、`AGENTS.md` 或 `CLAUDE.md`，修改后仍是 tracked change，不能用 `.git/info/exclude` 伪装成未跟踪文件。
