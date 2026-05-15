@@ -10,9 +10,9 @@
 
 ## 安装
 
-这是 Git 安装流程：先从 GitHub 拉取 Skill 原始包，再把仓库内的 `project-doc-modes/` 干净 Skill 包安装到 Codex / Claude Code 的默认 Skill 文件夹。
+安装请使用 `install.md`。它会从 GitHub 拉取原始包，并只把仓库内的 `project-doc-modes/` 干净 Skill 包安装到 Codex / Claude Code 的默认 Skill 文件夹。
 
-如果你希望让 AI 助手代为安装，可以直接使用：
+推荐让 AI 助手执行：
 
 ```text
 Fetch and follow instructions from https://raw.githubusercontent.com/verycafe/project-doc-modes/main/install.md
@@ -27,27 +27,7 @@ Claude Code: ${CLAUDE_HOME:-$HOME/.claude}/skills/project-doc-modes
 
 不要把这个 GitHub 仓库直接 clone 成最终 Skill 文件夹。GitHub 仓库是原始包，包含 README、安装说明、配图、脚本等维护文件；最终 Skill 文件夹里只应该保留 `project-doc-modes/` 子目录中的运行时文件。
 
-下面命令使用安装者自己的 `$HOME`。它不是项目路径，也不会被写进目标项目文档。若你的 Codex 或 Claude Code 使用了自定义 home 目录，先设置 `CODEX_HOME` 或 `CLAUDE_HOME`。
-
-从 Git 安装到 Codex：
-
-```bash
-CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-tmp="$(mktemp -d)"
-git clone --depth 1 https://github.com/verycafe/project-doc-modes.git "$tmp/project-doc-modes"
-python3 "$tmp/project-doc-modes/scripts/install_runtime.py" "$CODEX_HOME/skills/project-doc-modes" --runtime codex --force
-rm -rf "$tmp"
-```
-
-从 Git 安装到 Claude Code：
-
-```bash
-CLAUDE_HOME="${CLAUDE_HOME:-$HOME/.claude}"
-tmp="$(mktemp -d)"
-git clone --depth 1 https://github.com/verycafe/project-doc-modes.git "$tmp/project-doc-modes"
-python3 "$tmp/project-doc-modes/scripts/install_runtime.py" "$CLAUDE_HOME/skills/project-doc-modes" --runtime claude --force
-rm -rf "$tmp"
-```
+手动安装命令也在 `install.md` 中维护，README 不重复展开，避免安装入口分叉。
 
 安装完成后，运行时 Skill 目录只包含：
 
