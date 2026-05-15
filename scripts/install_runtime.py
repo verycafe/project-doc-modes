@@ -13,6 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SKILL_NAME = "project-doc-modes"
+PACKAGE_ROOT = ROOT / SKILL_NAME
 COMMON_PATHS = [
     Path("SKILL.md"),
     Path("references/rules.md"),
@@ -25,6 +26,14 @@ LEGACY_SKILL_PATHS = [
 ]
 STALE_RUNTIME_PATHS = [
     Path("agents/openai.yaml"),
+]
+SOURCE_REPO_PATHS = [
+    Path(".git"),
+    Path("README.md"),
+    Path("install.md"),
+    Path("assets"),
+    Path("scripts"),
+    Path(SKILL_NAME),
 ]
 MANAGED_PAYLOAD_DIRS = [
     Path("references"),
@@ -190,6 +199,16 @@ def selected_paths(runtime: str) -> list[Path]:
     raise ValueError(f"Unsupported runtime: {runtime}")
 
 
+def source_root() -> Path:
+    if (PACKAGE_ROOT / "SKILL.md").is_file():
+        return PACKAGE_ROOT
+    if (ROOT / "SKILL.md").is_file():
+        return ROOT
+    raise FileNotFoundError(
+        f"Could not find runtime package. Expected {PACKAGE_ROOT / 'SKILL.md'}."
+    )
+
+
 def ensure_parent(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -245,12 +264,13 @@ def install(runtime: str, target_root: Path, force: bool) -> list[Path]:
     validate_install_target(runtime, target_root)
     preflight_overwrites(runtime, target_root, force=force)
     in_place = ROOT.resolve() == target_root.resolve()
+    payload_root = source_root()
     if force:
         cleanup_stale_runtime_files(target_root, in_place=in_place)
 
     installed: list[Path] = []
     for relative_path in selected_paths(runtime):
-        source = ROOT / relative_path
+        source = payload_root / relative_path
         destination = target_root / relative_path
         if source.resolve() != destination.resolve():
             copy_entry(source, destination, force=force)
@@ -266,7 +286,12 @@ def cleanup_stale_runtime_files(target_root: Path, in_place: bool) -> None:
     if in_place:
         stale_paths = [*LEGACY_SKILL_PATHS, *STALE_RUNTIME_PATHS]
     else:
-        stale_paths = [*MANAGED_PAYLOAD_DIRS, *LEGACY_SKILL_PATHS]
+        stale_paths = [
+            *MANAGED_PAYLOAD_DIRS,
+            *LEGACY_SKILL_PATHS,
+            *STALE_RUNTIME_PATHS,
+            *SOURCE_REPO_PATHS,
+        ]
 
     for relative_path in stale_paths:
         path = target_root / relative_path
@@ -493,6 +518,13 @@ def run_self_test() -> int:
                 FileExistsError,
                 lambda: install("codex", codex_target, force=False),
             )
+            (codex_target / "README.md").write_text("repo readme", encoding="utf-8")
+            (codex_target / "assets").mkdir()
+            (codex_target / SKILL_NAME).mkdir()
+            install("codex", codex_target, force=True)
+            require(not (codex_target / "README.md").exists(), "codex force install left repo README")
+            require(not (codex_target / "assets").exists(), "codex force install left repo assets")
+            require(not (codex_target / SKILL_NAME).exists(), "codex force install left nested package")
 
             os.environ["HOME"] = str(test_root / "home-claude")
             claude_target = expected_skill_target("claude")

@@ -10,18 +10,26 @@
 
 ## 安装
 
-安装目录就是 Codex / Claude Code 的默认 Skill 文件夹：
+这是 Git 安装流程：先从 GitHub 拉取 Skill 原始包，再把仓库内的 `project-doc-modes/` 干净 Skill 包安装到 Codex / Claude Code 的默认 Skill 文件夹。
+
+如果你希望让 AI 助手代为安装，可以直接使用：
+
+```text
+Fetch and follow instructions from https://raw.githubusercontent.com/verycafe/project-doc-modes/main/install.md
+```
+
+默认 Skill 文件夹是：
 
 ```text
 Codex:      ${CODEX_HOME:-$HOME/.codex}/skills/project-doc-modes
 Claude Code: ${CLAUDE_HOME:-$HOME/.claude}/skills/project-doc-modes
 ```
 
-不要把这个 GitHub 仓库直接 clone 到默认 Skill 文件夹。GitHub 仓库是原始包，包含 README、配图、脚本等维护文件；默认 Skill 文件夹里只应该保留运行时必要规则文件。
+不要把这个 GitHub 仓库直接 clone 成最终 Skill 文件夹。GitHub 仓库是原始包，包含 README、安装说明、配图、脚本等维护文件；最终 Skill 文件夹里只应该保留 `project-doc-modes/` 子目录中的运行时文件。
 
 下面命令使用安装者自己的 `$HOME`。它不是项目路径，也不会被写进目标项目文档。若你的 Codex 或 Claude Code 使用了自定义 home 目录，先设置 `CODEX_HOME` 或 `CLAUDE_HOME`。
 
-安装到 Codex：
+从 Git 安装到 Codex：
 
 ```bash
 CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
@@ -31,7 +39,7 @@ python3 "$tmp/project-doc-modes/scripts/install_runtime.py" "$CODEX_HOME/skills/
 rm -rf "$tmp"
 ```
 
-安装到 Claude Code：
+从 Git 安装到 Claude Code：
 
 ```bash
 CLAUDE_HOME="${CLAUDE_HOME:-$HOME/.claude}"
@@ -55,16 +63,17 @@ $CLAUDE_HOME/commands/project-doc-modes.md
 $CLAUDE_HOME/commands/sdd.md
 ```
 
-`scripts/install_runtime.py` 是安装和同步脚本，只负责把原始包转换成最小运行时 payload、生成 Claude Code 命令包装、清理旧安装残留和运行自测。它不会在用户的目标项目里生成文档。
+`scripts/install_runtime.py` 是安装和同步脚本，只负责把 `project-doc-modes/` 子目录安装成最小运行时 payload、生成 Claude Code 命令包装、清理旧安装残留和运行自测。它不会在用户的目标项目里生成文档。
 
 GitHub 上的 Skill 原始包包含：
 
 ```text
 .gitignore
+install.md
 README.md
-SKILL.md
 assets/project-doc-modes-workflow.svg
-references/rules.md
+project-doc-modes/SKILL.md
+project-doc-modes/references/rules.md
 scripts/install_runtime.py
 ```
 
