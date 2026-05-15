@@ -17,14 +17,14 @@ COMMON_PATHS = [
     Path("SKILL.md"),
     Path("references/rules.md"),
 ]
-CODEX_ONLY_PATHS = [
-    Path("agents/openai.yaml"),
-]
 LEGACY_SKILL_PATHS = [
     Path("references/collaboration-mode.md"),
     Path("references/iterative-mode.md"),
     Path("references/sdd-riper.md"),
     Path("references/verification.md"),
+]
+STALE_RUNTIME_PATHS = [
+    Path("agents/openai.yaml"),
 ]
 MANAGED_PAYLOAD_DIRS = [
     Path("references"),
@@ -172,9 +172,7 @@ def validate_install_target(runtime: str, target_root: Path) -> None:
 
 
 def selected_paths(runtime: str) -> list[Path]:
-    if runtime == "codex":
-        return COMMON_PATHS + CODEX_ONLY_PATHS
-    if runtime == "claude":
+    if runtime in {"codex", "claude"}:
         return COMMON_PATHS
     raise ValueError(f"Unsupported runtime: {runtime}")
 
@@ -233,14 +231,16 @@ def preflight_overwrites(runtime: str, target_root: Path, force: bool) -> None:
 def install(runtime: str, target_root: Path, force: bool) -> list[Path]:
     validate_install_target(runtime, target_root)
     preflight_overwrites(runtime, target_root, force=force)
+    in_place = ROOT.resolve() == target_root.resolve()
     if force:
-        cleanup_stale_runtime_files(target_root)
+        cleanup_stale_runtime_files(target_root, in_place=in_place)
 
     installed: list[Path] = []
     for relative_path in selected_paths(runtime):
         source = ROOT / relative_path
         destination = target_root / relative_path
-        copy_entry(source, destination, force=force)
+        if source.resolve() != destination.resolve():
+            copy_entry(source, destination, force=force)
         installed.append(destination)
 
     if runtime == "claude":
@@ -249,13 +249,30 @@ def install(runtime: str, target_root: Path, force: bool) -> list[Path]:
     return installed
 
 
-def cleanup_stale_runtime_files(target_root: Path) -> None:
-    stale_paths = [*MANAGED_PAYLOAD_DIRS, *LEGACY_SKILL_PATHS]
+def cleanup_stale_runtime_files(target_root: Path, in_place: bool) -> None:
+    if in_place:
+        stale_paths = [*LEGACY_SKILL_PATHS, *STALE_RUNTIME_PATHS]
+    else:
+        stale_paths = [*MANAGED_PAYLOAD_DIRS, *LEGACY_SKILL_PATHS]
 
     for relative_path in stale_paths:
         path = target_root / relative_path
         if path.exists():
             remove_path(path)
+
+    if in_place:
+        remove_empty_dirs(target_root, [target_root / "agents"])
+
+
+def remove_empty_dirs(stop_at: Path, candidates: list[Path]) -> None:
+    for candidate in candidates:
+        path = candidate
+        while path != stop_at and stop_at in path.parents:
+            try:
+                path.rmdir()
+            except OSError:
+                break
+            path = path.parent
 
 
 def claude_home_for_skill_target(target_root: Path) -> Path:
@@ -414,11 +431,17 @@ def require_raises(name: str, expected: type[Exception], action) -> None:
 
 
 def run_cli(args: list[str], home: Path) -> subprocess.CompletedProcess[str]:
+    return run_cli_with_script(Path(__file__).resolve(), args, home, ROOT)
+
+
+def run_cli_with_script(
+    script_path: Path, args: list[str], home: Path, cwd: Path
+) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env["HOME"] = str(home)
     return subprocess.run(
-        [sys.executable, str(Path(__file__).resolve()), *args],
-        cwd=ROOT,
+        [sys.executable, str(script_path), *args],
+        cwd=cwd,
         env=env,
         text=True,
         capture_output=True,
@@ -439,7 +462,7 @@ def run_self_test() -> int:
             require_equal(
                 "codex payload",
                 relative_files(codex_target),
-                ["SKILL.md", "agents/openai.yaml", "references/rules.md"],
+                ["SKILL.md", "references/rules.md"],
             )
             (codex_target / "references" / "iterative-mode.md").write_text("stale", encoding="utf-8")
             (codex_target / "references" / "nested").mkdir()
@@ -542,6 +565,32 @@ def run_self_test() -> int:
             cli_repeat = run_cli([str(cli_target), "--runtime", "codex"], cli_home)
             require(cli_repeat.returncode == 2, "cli overwrite refusal returned wrong status")
             require("Refusing to overwrite existing path" in cli_repeat.stderr, "cli overwrite stderr missing refusal")
+
+            same_home = test_root / "home-same-target"
+            same_target = same_home / ".claude" / "skills" / SKILL_NAME
+            shutil.copytree(
+                ROOT,
+                same_target,
+                ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc"),
+            )
+            (same_target / "agents").mkdir(exist_ok=True)
+            (same_target / "agents" / "openai.yaml").write_text("stale", encoding="utf-8")
+            same_result = run_cli_with_script(
+                same_target / "scripts" / "install_runtime.py",
+                [str(same_target), "--runtime", "claude", "--force"],
+                same_home,
+                same_target,
+            )
+            require(same_result.returncode == 0, f"same-target claude sync failed: {same_result.stderr}")
+            require((same_target / "SKILL.md").is_file(), "same-target sync removed SKILL.md")
+            require((same_target / "references" / "rules.md").is_file(), "same-target sync removed rules.md")
+            require(not (same_target / "agents").exists(), "same-target sync left stale agents directory")
+            same_commands = same_home / ".claude" / "commands"
+            require_equal(
+                "same-target claude commands",
+                relative_files(same_commands),
+                ["project-doc-modes.md", "sdd.md"],
+            )
     finally:
         if original_home is None:
             os.environ.pop("HOME", None)

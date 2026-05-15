@@ -360,7 +360,6 @@ This skill is intentionally Markdown-first so it can be reused outside Codex.
 Portability rules:
 - store the core workflow in `SKILL.md` and reference files
 - avoid assuming Codex-only APIs in the main logic
-- treat `agents/openai.yaml` as a Codex convenience layer, not the core of the skill
 - generate Claude Code command wrappers from the installer instead of keeping hand-written workflow copies
 - in repositories generated or migrated by this skill, do not point project docs back to this skill package or to any local install path
 - only add automation scripts later if repeated file generation becomes too mechanical

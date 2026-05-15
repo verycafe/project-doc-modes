@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">project-doc-modes workflow</title>
+  <desc id="desc">A five-stage workflow for installing the Skill, activating it in a target repository, backing up docs, generating governance docs, and verifying constraints.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7fbff"/>
+      <stop offset="1" stop-color="#eaf3fb"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f9fcff"/>
+      <stop offset="1" stop-color="#e8f3fb"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5ab8e6"/>
+      <stop offset="1" stop-color="#496fc8"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4fd0a1"/>
+      <stop offset="1" stop-color="#32816d"/>
+    </linearGradient>
+    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd071"/>
+      <stop offset="1" stop-color="#ef8c4a"/>
+    </linearGradient>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#23506f" flood-opacity="0.18"/>
+    </filter>
+    <marker id="arrow" markerWidth="18" markerHeight="18" refX="15" refY="9" orient="auto">
+      <path d="M2,2 L16,9 L2,16 Z" fill="#2f6f9d"/>
+    </marker>
+    <style>
+      .title{font:800 52px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#0d1720}
+      .subtitle{font:500 24px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#4d6475}
+      .panel-title{font:800 27px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#102033}
+      .label{font:700 22px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#122438}
+      .small{font:500 18px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#334d60}
+      .tiny{font:600 15px "SFMono-Regular","Cascadia Code",monospace;fill:#17314a}
+      .white{fill:#fff}
+      .stroke{stroke:#8eb4ce;stroke-width:2}
+      .dark-stroke{stroke:#1e4968;stroke-width:2.5}
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <text x="800" y="72" text-anchor="middle" class="title">project-doc-modes 工作流</text>
+  <text x="800" y="108" text-anchor="middle" class="subtitle">安装的是 Skill 原始包，激活后才在目标项目生成文档治理结构</text>
+
+  <g transform="translate(28 145)">
+    <g filter="url(#shadow)">
+      <rect class="stroke" x="0" y="0" width="288" height="690" rx="14" fill="url(#panel)"/>
+      <circle cx="42" cy="46" r="20" fill="url(#blue)"/>
+      <text x="42" y="54" text-anchor="middle" font-size="24" font-weight="800" fill="#fff">1</text>
+      <text x="80" y="39" class="panel-title">从 Git 安装</text>
+      <text x="80" y="70" class="small">Skill 原始包</text>
+      <rect x="28" y="110" width="232" height="112" rx="10" fill="#d8ebfa" class="dark-stroke"/>
+      <text x="144" y="145" text-anchor="middle" class="label">GitHub Repo</text>
+      <text x="144" y="178" text-anchor="middle" class="tiny">SKILL.md</text>
+      <text x="144" y="203" text-anchor="middle" class="tiny">references/rules.md</text>
+      <path d="M144 232 L144 292" stroke="#2f6f9d" stroke-width="4" marker-end="url(#arrow)"/>
+      <rect x="32" y="300" width="224" height="80" rx="12" fill="#fff" class="stroke"/>
+      <text x="144" y="335" text-anchor="middle" class="label">安装到运行时</text>
+      <text x="144" y="364" text-anchor="middle" class="small">Codex / Claude Code</text>
+      <rect x="32" y="430" width="224" height="170" rx="12" fill="#eef8ff" class="stroke"/>
+      <text x="144" y="466" text-anchor="middle" class="label">不生成项目文档</text>
+      <text x="144" y="502" text-anchor="middle" class="small">此时只安装 Skill</text>
+      <text x="144" y="533" text-anchor="middle" class="small">不写 AGENTS.md</text>
+      <text x="144" y="564" text-anchor="middle" class="small">不写 docs/</text>
+    </g>
+
+    <g transform="translate(316 0)" filter="url(#shadow)">
+      <rect class="stroke" x="0" y="0" width="288" height="690" rx="14" fill="url(#panel)"/>
+      <circle cx="42" cy="46" r="20" fill="url(#blue)"/>
+      <text x="42" y="54" text-anchor="middle" font-size="24" font-weight="800" fill="#fff">2</text>
+      <text x="80" y="39" class="panel-title">项目内激活</text>
+      <text x="80" y="70" class="small">读取目标仓库</text>
+      <rect x="28" y="112" width="232" height="92" rx="10" fill="#fff" class="stroke"/>
+      <text x="144" y="148" text-anchor="middle" class="label">打开用户项目</text>
+      <text x="144" y="178" text-anchor="middle" class="small">不是 Skill 仓库</text>
+      <path d="M144 214 L144 274" stroke="#2f6f9d" stroke-width="4" marker-end="url(#arrow)"/>
+      <rect x="32" y="282" width="224" height="132" rx="12" fill="#d8ebfa" class="dark-stroke"/>
+      <text x="144" y="320" text-anchor="middle" class="label">检查现场</text>
+      <text x="144" y="354" text-anchor="middle" class="small">Git 状态 / 代码目录</text>
+      <text x="144" y="386" text-anchor="middle" class="small">配置 / 文档路径</text>
+      <rect x="32" y="470" width="224" height="92" rx="12" fill="#eef8ff" class="stroke"/>
+      <text x="144" y="506" text-anchor="middle" class="label">少量提问</text>
+      <text x="144" y="536" text-anchor="middle" class="small">模式 / 语言 / 版本</text>
+    </g>
+
+    <g transform="translate(632 0)" filter="url(#shadow)">
+      <rect class="stroke" x="0" y="0" width="288" height="690" rx="14" fill="url(#panel)"/>
+      <circle cx="42" cy="46" r="20" fill="url(#blue)"/>
+      <text x="42" y="54" text-anchor="middle" font-size="24" font-weight="800" fill="#fff">3</text>
+      <text x="80" y="39" class="panel-title">先备份再理解</text>
+      <text x="80" y="70" class="small">避免上下文失忆</text>
+      <rect x="34" y="106" width="220" height="86" rx="12" fill="#fff4d8" stroke="#d7a248" stroke-width="2"/>
+      <text x="144" y="141" text-anchor="middle" class="label">已有文档？</text>
+      <text x="144" y="170" text-anchor="middle" class="small">先不读内容</text>
+      <path d="M144 204 L144 260" stroke="#2f6f9d" stroke-width="4" marker-end="url(#arrow)"/>
+      <rect x="32" y="268" width="224" height="92" rx="12" fill="url(#orange)" opacity="0.9"/>
+      <text x="144" y="305" text-anchor="middle" class="label white">复制到 archive</text>
+      <text x="144" y="336" text-anchor="middle" class="small white">docs/archive/</text>
+      <path d="M144 372 L144 430" stroke="#2f6f9d" stroke-width="4" marker-end="url(#arrow)"/>
+      <rect x="32" y="438" width="224" height="150" rx="12" fill="#fff" class="stroke"/>
+      <text x="144" y="474" text-anchor="middle" class="label">备份后再阅读</text>
+      <text x="144" y="507" text-anchor="middle" class="small">旧文档 + 真实代码</text>
+      <text x="144" y="538" text-anchor="middle" class="small">校验逻辑是否一致</text>
+      <text x="144" y="569" text-anchor="middle" class="tiny">MIGRATION_NOTES.tmp.md</text>
+    </g>
+
+    <g transform="translate(948 0)" filter="url(#shadow)">
+      <rect class="stroke" x="0" y="0" width="288" height="690" rx="14" fill="url(#panel)"/>
+      <circle cx="42" cy="46" r="20" fill="url(#blue)"/>
+      <text x="42" y="54" text-anchor="middle" font-size="24" font-weight="800" fill="#fff">4</text>
+      <text x="80" y="39" class="panel-title">生成文档结构</text>
+      <text x="80" y="70" class="small">项目自己的规范</text>
+      <rect x="30" y="104" width="228" height="92" rx="12" fill="#d8ebfa" class="dark-stroke"/>
+      <text x="144" y="141" text-anchor="middle" class="label">AGENTS.md</text>
+      <text x="144" y="172" text-anchor="middle" class="small">跨 agent 主规则入口</text>
+      <rect x="30" y="220" width="228" height="92" rx="12" fill="#eef8ff" class="stroke"/>
+      <text x="144" y="257" text-anchor="middle" class="label">CLAUDE.md</text>
+      <text x="144" y="288" text-anchor="middle" class="small">桥接到 AGENTS.md</text>
+      <rect x="30" y="336" width="228" height="116" rx="12" fill="#fff" class="stroke"/>
+      <text x="144" y="374" text-anchor="middle" class="label">docs/product/vX.Y</text>
+      <text x="144" y="407" text-anchor="middle" class="small">PRD -> PHASE -> SPEC</text>
+      <rect x="30" y="476" width="228" height="104" rx="12" fill="#fff" class="stroke"/>
+      <text x="144" y="514" text-anchor="middle" class="label">docs/governance</text>
+      <text x="144" y="546" text-anchor="middle" class="small">状态 / 流程 / 上下文</text>
+    </g>
+
+    <g transform="translate(1264 0)" filter="url(#shadow)">
+      <rect class="stroke" x="0" y="0" width="288" height="690" rx="14" fill="url(#panel)"/>
+      <circle cx="42" cy="46" r="20" fill="url(#blue)"/>
+      <text x="42" y="54" text-anchor="middle" font-size="24" font-weight="800" fill="#fff">5</text>
+      <text x="80" y="39" class="panel-title">治理与验证</text>
+      <text x="80" y="70" class="small">持续约束 agent 行为</text>
+      <rect x="32" y="112" width="224" height="110" rx="12" fill="url(#green)" opacity="0.92"/>
+      <text x="144" y="151" text-anchor="middle" class="label white">local-only</text>
+      <text x="144" y="184" text-anchor="middle" class="small white">默认不进入 Git</text>
+      <rect x="32" y="250" width="224" height="110" rx="12" fill="#fff" class="stroke"/>
+      <text x="144" y="289" text-anchor="middle" class="label">不碰代码逻辑</text>
+      <text x="144" y="322" text-anchor="middle" class="small">git diff 保护代码路径</text>
+      <rect x="32" y="388" width="224" height="110" rx="12" fill="#eef8ff" class="stroke"/>
+      <text x="144" y="427" text-anchor="middle" class="label">升级不清空 docs/</text>
+      <text x="144" y="460" text-anchor="middle" class="small">复制归档再升级</text>
+      <rect x="32" y="526" width="224" height="94" rx="12" fill="#fff" class="stroke"/>
+      <text x="144" y="563" text-anchor="middle" class="label">SDD-RIPER</text>
+      <text x="144" y="594" text-anchor="middle" class="small">Review / Plan / Sync</text>
+    </g>
+
+    <path d="M288 345 L314 345" stroke="#2f6f9d" stroke-width="5" marker-end="url(#arrow)"/>
+    <path d="M604 345 L630 345" stroke="#2f6f9d" stroke-width="5" marker-end="url(#arrow)"/>
+    <path d="M920 345 L946 345" stroke="#2f6f9d" stroke-width="5" marker-end="url(#arrow)"/>
+    <path d="M1236 345 L1262 345" stroke="#2f6f9d" stroke-width="5" marker-end="url(#arrow)"/>
+  </g>
+</svg>

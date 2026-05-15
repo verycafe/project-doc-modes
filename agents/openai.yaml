@@ -1,4 +1,0 @@
-interface:
-  display_name: "Project Doc Modes"
-  short_description: "Scaffold categorized local repo docs with PRD -> PHASE -> SPEC and optional SDD-RIPER gates."
-  default_prompt: "Inspect this repository, ask one or two short setup questions at a time, keep generated docs local-only in Git unless I ask otherwise, and scaffold categorized project-native docs under docs/ with PRD -> PHASE -> SPEC structure when applicable."

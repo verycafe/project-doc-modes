@@ -4,87 +4,28 @@
 
 ## 配图
 
-```mermaid
-flowchart LR
-    subgraph P1["1 安装 Skill 原始包"]
-        A1["GitHub 仓库<br/>只保存 Skill 原始文件"]
-        A2["install_runtime.py"]
-        A3["安装到 Codex<br/>~/.codex/skills/project-doc-modes"]
-        A4["安装到 Claude Code<br/>~/.claude/skills/project-doc-modes"]
-        A1 --> A2
-        A2 --> A3
-        A2 --> A4
-    end
-
-    subgraph P2["2 在目标项目中激活"]
-        B1["打开用户项目"]
-        B2["Codex: project-doc-modes"]
-        B3["Claude: /project-doc-modes 或 /sdd"]
-        B4["先检查仓库结构<br/>Git 状态 / 代码目录 / 文档路径"]
-        B1 --> B2
-        B1 --> B3
-        B2 --> B4
-        B3 --> B4
-    end
-
-    subgraph P3["3 先备份再理解"]
-        C1{"已有文档？"}
-        C2["先复制到 docs/archive/"]
-        C3["备份存在后<br/>再阅读旧文档"]
-        C4["结合真实代码和配置<br/>校验文档逻辑"]
-        C5["MIGRATION_NOTES.tmp.md<br/>临时记录避免失忆"]
-        C1 -- "有" --> C2 --> C3 --> C4 --> C5
-        C1 -- "无" --> C4
-    end
-
-    subgraph P4["4 生成规范文档结构"]
-        D1["AGENTS.md<br/>跨 agent 主规则入口"]
-        D2["CLAUDE.md<br/>桥接到 AGENTS.md"]
-        D3["docs/product/vX.Y<br/>PRD -> PHASE -> SPEC"]
-        D4["docs/governance<br/>状态 / 工作流 / 上下文"]
-        D5["docs/archive<br/>历史快照"]
-        D1 --- D2
-        D3 --- D4
-        D4 --- D5
-    end
-
-    subgraph P5["5 执行治理和验证"]
-        E1["生成文档默认 local-only"]
-        E2["不得删除或修改用户代码逻辑"]
-        E3["升级时复制归档<br/>不清空 docs/"]
-        E4["校验泄漏、结构、Git 状态"]
-        E5["SDD-RIPER<br/>Spec Review / Plan / Execute / Reverse Sync"]
-        E1 --> E2 --> E3 --> E4 --> E5
-    end
-
-    P1 --> P2 --> P3 --> P4 --> P5
-```
+![project-doc-modes 工作流](assets/project-doc-modes-workflow.svg)
 
 ## 安装
 
-Codex:
+从 Git 安装到 Codex：
 
 ```bash
-python3 scripts/install_runtime.py ~/.codex/skills/project-doc-modes --runtime codex --force
+git clone https://github.com/verycafe/project-doc-modes.git ~/.codex/skills/project-doc-modes
 ```
 
-Claude Code:
+从 Git 安装到 Claude Code：
 
 ```bash
-python3 scripts/install_runtime.py ~/.claude/skills/project-doc-modes --runtime claude --force
+git clone https://github.com/verycafe/project-doc-modes.git ~/.claude/skills/project-doc-modes
 ```
 
-Claude Code 安装后会额外生成用户级命令：
+`scripts/install_runtime.py` 是运行时同步和维护脚本，不是普通用户的主安装入口。它用于本地开发、升级已安装 Skill、生成 Claude Code 用户级命令、清理旧安装残留和运行自测。
 
-```text
-~/.claude/commands/project-doc-modes.md
-~/.claude/commands/sdd.md
-```
-
-安装自测：
+如果 Claude Code 需要 `/project-doc-modes` 和 `/sdd` 这两个用户级命令，可在安装后运行一次同步脚本生成命令包装：
 
 ```bash
-python3 scripts/install_runtime.py --self-test
+python3 ~/.claude/skills/project-doc-modes/scripts/install_runtime.py ~/.claude/skills/project-doc-modes --runtime claude --force
 ```
 
 GitHub 上的 Skill 原始包只包含：
@@ -93,7 +34,7 @@ GitHub 上的 Skill 原始包只包含：
 .gitignore
 README.md
 SKILL.md
-agents/openai.yaml
+assets/project-doc-modes-workflow.svg
 references/rules.md
 scripts/install_runtime.py
 ```
@@ -102,7 +43,7 @@ scripts/install_runtime.py
 
 在目标项目中打开 Codex，然后激活 `project-doc-modes` Skill。
 
-在 Claude Code 中进入目标项目后使用：
+在 Claude Code 中进入目标项目后，可以调用已安装的 Skill；如果已生成命令包装，也可以使用：
 
 ```text
 /project-doc-modes
