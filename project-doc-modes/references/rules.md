@@ -30,10 +30,20 @@ Rules:
 - Global binding is allowed only when the user explicitly requests `scope=global`.
 - Do not silently fall back from project scope to global scope.
 - Bind only the current tool unless the user explicitly names another tool.
-- Inspect the current tool's real hook support before editing.
+- Use the known support matrix in `hooks.md` for supported tools instead of rediscovering hook support every time.
+- Inspect the current tool's real hook support only when the tool or requested scope is not covered by `hooks.md`.
 - Do not invent hook APIs, lifecycle events, config files, or command formats.
 - Preserve existing hooks and add or update only the managed `project-doc-modes` binding.
 - If active docs do not exist yet, the managed hook must not run `init`; it should report that initialization is required first.
+
+Codex project binding:
+- Supported project-local target: `<repo>/.codex/hooks.json`.
+- Supported managed script: `<repo>/.codex/hooks/project_doc_modes_stop.py`.
+- Supported lifecycle event: `Stop`.
+- Supported behavior: return a Codex continuation prompt that applies `project-doc-modes sync` semantics and then `verify` semantics.
+- Guard `stop_hook_active` to prevent infinite continuation loops.
+- Project hooks merge with global hooks; they do not replace `~/.codex/hooks.json`.
+- The project `.codex` layer and non-managed command hook may require Codex `/hooks` review/trust before running.
 
 Allowed actions:
 - `inspect`: report current binding state without modifying files.

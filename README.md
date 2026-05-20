@@ -22,6 +22,15 @@ Hook 绑定是单独入口，默认只绑定当前项目：
 Fetch and follow instructions from https://raw.githubusercontent.com/verycafe/project-doc-modes/main/hooks.md
 ```
 
+在 Codex 中，这个入口会直接安装项目级 Hook，不再让 AI 每次重新判断支持情况。默认会写入当前仓库：
+
+```text
+.codex/hooks.json
+.codex/hooks/project_doc_modes_stop.py
+```
+
+它使用 Codex 的 `Stop` 事件，在每轮会话结束后自动续跑一次 `project-doc-modes sync` 语义，然后执行 `verify` 语义。Codex 可能会要求用户通过 `/hooks` review/trust 这个项目级 command hook，这是 Codex 的安全确认，不是额外的安装步骤。
+
 全局绑定必须由用户显式改参数：
 
 ```text
@@ -67,8 +76,11 @@ README.md
 assets/project-doc-modes-workflow.svg
 project-doc-modes/SKILL.md
 project-doc-modes/references/rules.md
+scripts/bind_codex_project_hook.py
 scripts/install_runtime.py
 ```
+
+`scripts/bind_codex_project_hook.py` 是 Codex 项目级 Hook 绑定脚本，只负责在目标项目中创建、检查或移除 `.codex/hooks.json` 和 `.codex/hooks/project_doc_modes_stop.py` 的受管绑定。
 
 ## 使用
 
@@ -236,7 +248,7 @@ Codex 里只有 `/project-doc-modes` 一个 Skill 入口，使用 `init`、`sdd`
 
 后续 Hook 自动化不应重复执行完整初始化流程。Hook 应使用增量同步模式：读取本次会话摘要、变更文件和验证输出，只更新状态、索引、Implementation Record、Review、决策记录等受影响文档，然后做轻量结构和泄漏检查。
 
-Hook 绑定默认作用于当前项目。只有用户明确写 `scope=global` 时，AI 才能改当前工具的全局 Hook 配置；如果当前工具不支持项目级 Hook，不能静默降级成全局绑定。
+Hook 绑定默认作用于当前项目。Codex 项目级绑定已预置支持，默认通过 `.codex/hooks.json` 和 `.codex/hooks/project_doc_modes_stop.py` 安装；只有用户明确写 `scope=global` 时，AI 才能改当前工具的全局 Hook 配置；如果当前工具不在 `hooks.md` 的支持矩阵中，不能静默降级成全局绑定。
 
 ## 规范逻辑和约束
 

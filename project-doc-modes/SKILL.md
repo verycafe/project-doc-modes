@@ -174,10 +174,13 @@ When the user asks to bind hooks for this workflow:
 - default to the current tool where the user made the request
 - require explicit `scope=global` before editing global tool configuration
 - do not bind another tool unless the user explicitly names it
-- inspect the current tool's real hook support before editing
+- use the known support matrix from `hooks.md` for supported tools instead of rediscovering hook support every time
+- inspect the current tool's real hook support only when the tool or scope is not already covered by `hooks.md`
 - do not invent hook APIs, event names, config files, or command formats
 
-Project-scope binding should connect the current project to `sync` and then `verify` after a session or equivalent lifecycle event. If the current tool has no verified project-level hook support, report that project-local binding is unsupported instead of falling back to global scope.
+For Codex project-scope binding, `hooks.md` is the pre-researched installer contract. It should directly create or update `<repo>/.codex/hooks.json` and `<repo>/.codex/hooks/project_doc_modes_stop.py`, using the Codex `Stop` event to continue with `project-doc-modes sync` semantics and then `verify` semantics. Do not ask the user to confirm support or manually choose files for the default Codex project binding.
+
+Project-scope binding should connect the current project to `sync` and then `verify` after a session or equivalent lifecycle event. If the current tool has no verified project-level hook support in `hooks.md`, report that project-local binding is unsupported instead of falling back to global scope.
 
 Global-scope binding may only proceed when the user explicitly requests it with `scope=global`. Preserve unrelated hooks and modify only the managed `project-doc-modes` binding.
 
