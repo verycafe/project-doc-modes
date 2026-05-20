@@ -33,7 +33,16 @@ Fetch and follow instructions from https://raw.githubusercontent.com/verycafe/pr
 .codex/hooks/project_doc_modes_stop.py
 ```
 
-它使用 Codex 的 `Stop` 事件，在每轮会话结束后自动续跑一次 `project-doc-modes sync` 语义，然后执行 `verify` 语义。Codex 可能在首次运行非 managed command hook 前要求 `/hooks` review/trust；这是 Codex 运行时安全机制，不是第二个安装步骤。
+它使用 Codex 的 `Stop` 事件，在每轮会话结束后自动续跑一次 `project-doc-modes sync` 语义，然后执行 `verify` 语义。
+
+Hook 安装完成后还有两个生效前提：
+
+1. 用户需要到当前项目对应的 Codex Hook 配置里点击信任。通常入口是 `设置 -> 钩子 -> 当前项目 -> Stop -> 信任`。这是 Codex 运行时安全机制，不是第二条安装命令。
+2. 当前项目需要已经用 `project-doc-modes` 初始化或迁移过文档结构，至少已经有活跃入口文档和 `docs/` 治理结构。未初始化的项目不会自动跑迁移；Hook 只会提示先执行初始化。
+
+安装与生效流程示意：
+
+![Codex Hook 安装与生效示意](assets/codex-hook-success-example.svg)
 
 全局绑定必须由用户显式改参数：
 
@@ -84,6 +93,7 @@ install.md
 hooks.md
 README.md
 assets/project-doc-modes-workflow.svg
+assets/codex-hook-success-example.svg
 project-doc-modes/SKILL.md
 project-doc-modes/references/init.md
 project-doc-modes/references/rules.md
