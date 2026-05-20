@@ -16,20 +16,20 @@
 Fetch and follow instructions from https://raw.githubusercontent.com/verycafe/project-doc-modes/main/install.md
 ```
 
-Hook 绑定是单独入口，默认只绑定当前项目：
+Hook 绑定是单独入口，默认只绑定当前项目。在 Codex 中，用户从 GitHub 安装 Hook 只需要在目标项目里粘贴：
 
 ```text
 Fetch and follow instructions from https://raw.githubusercontent.com/verycafe/project-doc-modes/main/hooks.md
 ```
 
-在 Codex 中，这个入口会直接安装项目级 Hook，不再让 AI 每次重新判断支持情况。默认会写入当前仓库：
+这条命令会直接安装项目级 Hook，不再让 AI 每次重新判断支持情况。默认会写入当前仓库：
 
 ```text
 .codex/hooks.json
 .codex/hooks/project_doc_modes_stop.py
 ```
 
-它使用 Codex 的 `Stop` 事件，在每轮会话结束后自动续跑一次 `project-doc-modes sync` 语义，然后执行 `verify` 语义。Codex 可能会要求用户通过 `/hooks` review/trust 这个项目级 command hook，这是 Codex 的安全确认，不是额外的安装步骤。
+它使用 Codex 的 `Stop` 事件，在每轮会话结束后自动续跑一次 `project-doc-modes sync` 语义，然后执行 `verify` 语义。Codex 可能在首次运行非 managed command hook 前要求 `/hooks` review/trust；这是 Codex 运行时安全机制，不是第二个安装步骤。
 
 全局绑定必须由用户显式改参数：
 

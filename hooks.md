@@ -14,6 +14,29 @@ Fetch and follow instructions from https://raw.githubusercontent.com/verycafe/pr
 
 That default command must install the current tool's project-local binding when a supported binding exists. Do not make the user repeat support-discovery questions.
 
+## Codex Quick Start
+
+From inside the target project, paste:
+
+```text
+Fetch and follow instructions from https://raw.githubusercontent.com/verycafe/project-doc-modes/main/hooks.md
+```
+
+That is the install action. It creates or updates:
+
+```text
+.codex/hooks.json
+.codex/hooks/project_doc_modes_stop.py
+```
+
+After these files exist and the installer reports `bound=True`, hook binding is installed.
+
+Codex may still surface its own hook review UI before a non-managed command hook runs. That is Codex runtime security, not a second installation command. If Codex asks for review, use `/hooks` and trust the managed hook named:
+
+```text
+project-doc-modes sync + verify
+```
+
 Optional parameters:
 
 ```text
@@ -56,7 +79,7 @@ Codex project binding details:
 - Codex loads project hooks from `<repo>/.codex/hooks.json`.
 - Project hooks merge with `~/.codex/hooks.json`; they do not replace global hooks.
 - The project `.codex` layer must be trusted by Codex before the command hook runs.
-- Non-managed command hooks require Codex review/trust. If Codex prompts for review, the user should approve the managed `project-doc-modes sync + verify` hook through `/hooks`.
+- Non-managed command hooks require Codex review/trust before they run; Codex exposes that through `/hooks` when review is needed.
 - The installed hook uses the `Stop` event and a command handler. It returns a continuation prompt that asks Codex to run `project-doc-modes sync` semantics and then `verify` semantics.
 - The hook guards `stop_hook_active` to avoid an infinite continuation loop.
 - If active docs do not exist yet, the hook reports that `project-doc-modes init` is required and does not run a migration automatically.
@@ -152,6 +175,7 @@ Global scope:
 - Do not edit global configuration unless `scope=global` is explicit.
 - Do not install packages or dependencies for hook binding.
 - Do not modify user code, tests, runtime configuration, dependencies, APIs, schemas, or product logic.
+- Do not mutate Codex `hooks.state` trust records directly. Trust must happen through Codex's `/hooks` review flow.
 - Do not stage, commit, or push hook changes unless the user explicitly asks.
 - Keep generated target-project docs free of this file name, local install paths, and invocation commands.
 
@@ -164,4 +188,4 @@ After binding or unbinding:
 - confirm unrelated hooks were preserved
 - confirm global config was not touched unless `scope=global`
 - for project scope, confirm the binding is under the current project
-- remind the user that Codex may require `/hooks` review/trust before the command hook runs
+- mention that Codex may require `/hooks` review before the non-managed command hook runs

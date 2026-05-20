@@ -82,4 +82,8 @@ To bind hooks after installation, ask an AI assistant from the target project:
 Fetch and follow instructions from https://raw.githubusercontent.com/verycafe/project-doc-modes/main/hooks.md
 ```
 
-The default hook scope is the current project. In Codex, this directly installs `.codex/hooks.json` and `.codex/hooks/project_doc_modes_stop.py` for the current repository. Use `scope=global` only when the user explicitly wants global binding.
+The default hook scope is the current project. In Codex, this directly installs `.codex/hooks.json` and `.codex/hooks/project_doc_modes_stop.py` for the current repository.
+
+Codex may show a `/hooks` review before a non-managed command hook runs. That review is Codex runtime security, not a second installation step.
+
+Use `scope=global` only when the user explicitly wants global binding.

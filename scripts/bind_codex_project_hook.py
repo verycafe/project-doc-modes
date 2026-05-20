@@ -369,6 +369,7 @@ def run_action(action: str, root: Path) -> dict[str, Any]:
                 "script_changed": script_changed,
                 "global_config_touched": False,
                 "active_docs_exist": active_docs_exist(root),
+                "ready_for_auto_run_after_trust": active_docs_exist(root),
             }
         )
         return report

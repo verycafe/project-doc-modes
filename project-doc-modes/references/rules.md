@@ -44,6 +44,8 @@ Codex project binding:
 - Guard `stop_hook_active` to prevent infinite continuation loops.
 - Project hooks merge with global hooks; they do not replace `~/.codex/hooks.json`.
 - The project `.codex` layer and non-managed command hook may require Codex `/hooks` review/trust before running.
+- After installing the Codex project hook, report installation complete when `.codex/hooks.json` and `.codex/hooks/project_doc_modes_stop.py` exist. If Codex asks for hook review, tell the user to use `/hooks` and trust `project-doc-modes sync + verify`.
+- Do not mutate Codex hook trust state directly.
 
 Allowed actions:
 - `inspect`: report current binding state without modifying files.
