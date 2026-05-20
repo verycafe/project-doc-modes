@@ -160,6 +160,16 @@ Codex 里只有 `/project-doc-modes` 一个 Skill 入口，使用 `init`、`sdd`
 4. 记录执行规则：No Spec, No Code；Spec is Truth；Reverse Sync。
 5. 后续开发按 Research、Innovate、Plan、Execute、Review、Archive 的阶段推进。
 
+简单选择：
+
+```text
+如果你只是想让一个仓库文档结构清楚，用：
+/project-doc-modes
+
+如果你希望之后 AI 写代码前必须先看 SPEC、先有计划、实现后同步文档，用：
+/project-doc-modes-sdd
+```
+
 `/project-doc-modes-sync` 会做增量同步：
 
 1. 读取本轮会话摘要、变更文件、`git status`、验证命令和输出。
