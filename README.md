@@ -8,7 +8,7 @@
 
 ## 配图
 
-![project-doc-modes 工作流](assets/project-doc-modes-workflow.svg)
+![project-doc-modes 当前版本能力地图](assets/project-doc-modes-current-capability-map.png)
 
 ## 安装
 
@@ -93,6 +93,7 @@ install.md
 hooks.md
 README.md
 assets/project-doc-modes-workflow.svg
+assets/project-doc-modes-current-capability-map.png
 assets/codex-hook-success-example.svg
 project-doc-modes/SKILL.md
 project-doc-modes/references/init.md
