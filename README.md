@@ -38,6 +38,8 @@ Claude Code 安装还会生成用户级命令包装：
 
 ```text
 $CLAUDE_HOME/commands/project-doc-modes.md
+$CLAUDE_HOME/commands/project-doc-modes-sync.md
+$CLAUDE_HOME/commands/project-doc-modes-verify.md
 $CLAUDE_HOME/commands/sdd.md
 ```
 
@@ -74,13 +76,25 @@ Claude Code：
 /project-doc-modes
 ```
 
+初始化完成后，如果需要把单次会话、Hook payload、代码变更摘要和验证输出增量同步回文档，可以使用：
+
+```text
+/project-doc-modes-sync
+```
+
+只做结构检查、不改文档时，可以使用：
+
+```text
+/project-doc-modes-verify
+```
+
 如需启用 SDD-RIPER / 团队氛围编码治理，且已生成 Claude Code 命令包装，可以使用：
 
 ```text
 /sdd
 ```
 
-激活后，Skill 会先检查目标项目，再用少量问题确认模式、语言、版本、阶段或角色边界，然后才创建或迁移文档。
+执行初始化或迁移时，Skill 会先检查目标项目，再用少量问题确认模式、语言、版本、阶段或角色边界，然后才创建或迁移文档。`sync` 不提问、不重建结构；`verify` 默认只读。
 
 ## 项目结构
 
@@ -130,6 +144,8 @@ Claude Code：
 7. 按规范生成 `AGENTS.md`、`CLAUDE.md`、`README.md` 和分类 `docs/`。
 8. 运行结构、泄漏、Git local-only、代码不可变等验证。
 
+后续 Hook 自动化不应重复执行完整初始化流程。Hook 应使用增量同步模式：读取本次会话摘要、变更文件和验证输出，只更新状态、索引、Implementation Record、Review、决策记录等受影响文档，然后做轻量结构和泄漏检查。
+
 ## 规范逻辑和约束
 
 - 生成文档默认不进入 Git；除非用户明确要求，否则不得对这些文档执行 `git add`、`git commit` 或 `git push`。
@@ -142,5 +158,5 @@ Claude Code：
 - 如果目标项目已有文档，必须先备份，再阅读、理解、迁移和重写。
 - 文档升级时默认复制当前版本到 `docs/archive/`，然后升级当前文档；不得默认清空 `docs/`。
 - 上一个版本的功能逻辑默认锁定为历史基线，除非用户明确要求修改。
-- 生成的目标项目文档不得写入 `project-doc-modes`、`/project-doc-modes`、`/sdd`、`SKILL.md` 或本机安装路径。
+- 生成的目标项目文档不得写入 `project-doc-modes`、`/project-doc-modes`、`/project-doc-modes-sync`、`/project-doc-modes-verify`、`/sdd`、`SKILL.md` 或本机安装路径。
 - 复杂迁移可使用 `docs/governance/context/MIGRATION_NOTES.tmp.md` 做临时记录，避免迁移过程中丢失上下文。

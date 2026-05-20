@@ -2,6 +2,19 @@
 
 Use this reference for mode-specific layouts, SDD-RIPER governance, and final verification.
 
+## Operating Modes
+
+Choose one operating mode before acting:
+- `init`: first activation, migration, or full upgrade of the repository documentation system.
+- `sync`: hook-safe incremental Reverse Sync after the active documentation system already exists.
+- `verify`: read-only structure, entrypoint, local-only, and leakage checks.
+
+Mode rules:
+- `init` may ask short setup questions, create pre-migration archive snapshots, and build or upgrade the active docs.
+- `sync` must be non-interactive and must not rerun the full migration flow.
+- `verify` must not modify files unless the user explicitly asks for repairs.
+- Hooks should call `sync` first and optionally `verify` after sync, not `init`.
+
 ## Activation Safety
 
 This section applies when the installed skill is activated inside a target repository.
@@ -125,6 +138,51 @@ Portability:
 - If the user explicitly asks for OpenSpec-style dual directories, keep them under `docs/openspec/specs/` and `docs/openspec/changes/`, not root `specs/` or `changes/`.
 - Keep the portable source of truth in Markdown under `docs/`.
 
+## Incremental Sync
+
+Use this section for hook-driven or session-end documentation updates after initial activation.
+
+Inputs:
+- latest session summary, if available
+- changed file names from `git status --short` or `git diff --name-status`
+- relevant diff hunks only when needed to understand behavior changes
+- verification commands and actual output
+- explicit user decisions, unresolved risks, rejected options, and implementation discoveries
+
+Required first read:
+- root entrypoints: `AGENTS.md`, `CLAUDE.md`, `README.md`
+- `docs/README.md`
+- the current mode pointer, such as `docs/product/CURRENT.md` or `docs/collaboration/ROLE_MATRIX.md`
+- active phase, review, and Reverse Sync paths when SDD-RIPER is active
+
+Allowed updates:
+- `docs/governance/STATUS.md`
+- `docs/governance/context/CODEMAP.md` or `docs/governance/context/CONTEXT_BUNDLE.md` when the session adds durable code evidence
+- active `IMPLEMENTATION_RECORD.md`
+- active `REVIEW.md`
+- decision records, release notes, role status, handoff docs, or index files directly affected by the session
+- PRD, PHASE, or SPEC docs only when the session explicitly changes requirements, intended behavior, architecture, acceptance criteria, or delivery scope
+
+Forbidden during `sync` unless the user explicitly asks for a full upgrade:
+- asking setup questions during a hook
+- choosing or changing collaboration vs iterative mode
+- creating broad pre-migration archives
+- rebuilding or relocating the docs tree
+- moving historical docs
+- rewriting unrelated PRD, PHASE, SPEC, README, or governance sections
+- editing code, tests, dependencies, runtime configuration, APIs, schemas, or product logic
+
+Missing input rule:
+- If a hook payload lacks enough evidence, do not stop for a question. Record a concise pending item in the safest existing status or implementation record, or report the missing input when no safe doc target exists.
+
+Incremental verification:
+- changed docs stay in the active mode layout
+- entrypoint links still point to active docs
+- root Markdown remains limited to `AGENTS.md`, `CLAUDE.md`, and `README.md`
+- local-only rules still cover newly generated untracked docs
+- changed docs and active entrypoints pass the leakage checks
+- verification commands and actual output are recorded in the sync result
+
 ## Git Local-Only Policy
 
 Generated target-project docs are local-only in Git by default.
@@ -165,7 +223,7 @@ Entrypoints:
 Stale reference and leakage checks:
 ```bash
 rg -n "old-path|old-version|legacy-mode-name" AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
-rg -n 'project-doc-modes|(^|[^[:alnum:]_./-])(/project-doc-modes|/sdd)([^[:alnum:]_./-]|$)|\$project-doc-modes|\.codex/skills|\.claude/skills|SKILL\.md' AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
+rg -n 'project-doc-modes|(^|[^[:alnum:]_./-])(/project-doc-modes(-sync|-verify)?|/sdd)([^[:alnum:]_./-]|$)|\$project-doc-modes|\.codex/skills|\.claude/skills|SKILL\.md' AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
 rg -n '/Users/|~/|\$HOME|/private/' AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
 test ! -f CLAUDE.md || rg -i 'read .*AGENTS\.md.*first|先.*AGENTS\.md' CLAUDE.md
 test ! -f AGENTS.md || rg -i 'canonical|规范入口|治理入口|source of truth' AGENTS.md

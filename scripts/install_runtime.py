@@ -14,6 +14,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SKILL_NAME = "project-doc-modes"
 PACKAGE_ROOT = ROOT / SKILL_NAME
+CLAUDE_COMMANDS = (
+    "project-doc-modes",
+    "project-doc-modes-sync",
+    "project-doc-modes-verify",
+    "sdd",
+)
+CLAUDE_COMMAND_FILES = sorted(f"{command}.md" for command in CLAUDE_COMMANDS)
 COMMON_PATHS = [
     Path("SKILL.md"),
     Path("references/rules.md"),
@@ -315,12 +322,28 @@ def remove_empty_dirs(stop_at: Path, candidates: list[Path]) -> None:
 
 def claude_command_paths(skill_root: Path) -> list[Path]:
     commands_root = runtime_home("claude") / "commands"
-    return [commands_root / "project-doc-modes.md", commands_root / "sdd.md"]
+    return [commands_root / f"{command}.md" for command in CLAUDE_COMMANDS]
 
 
 def command_reference(path: Path) -> str:
+    resolved = path.resolve()
+    env_matches: list[tuple[int, str, Path]] = []
+    for env_name in ("CODEX_HOME", "CLAUDE_HOME"):
+        env_value = os.environ.get(env_name)
+        if not env_value:
+            continue
+        env_root = Path(env_value).expanduser().resolve()
+        try:
+            relative = resolved.relative_to(env_root)
+        except ValueError:
+            continue
+        env_matches.append((len(str(env_root)), env_name, relative))
+    if env_matches:
+        _, env_name, relative = max(env_matches)
+        return f"${env_name}/{relative.as_posix()}"
+
     try:
-        relative = path.resolve().relative_to(Path.home().resolve())
+        relative = resolved.relative_to(Path.home().resolve())
     except ValueError:
         return str(path)
     return f"~/{relative.as_posix()}"
@@ -332,11 +355,11 @@ def command_text(command: str, skill_root: Path) -> str:
 
     if command == "project-doc-modes":
         return f"""---
-description: Inspect the repository, ask short setup questions, then scaffold or migrate docs with project-doc-modes.
-argument-hint: [goal, mode, or language]
+description: Initialize, migrate, or fully upgrade repository docs with project-doc-modes.
+argument-hint: [init goal, mode, language, or upgrade target]
 ---
 
-Use the installed `project-doc-modes` workflow for this task.
+Use the installed `project-doc-modes` workflow in `init` mode unless the user explicitly asks for `sync` or `verify`.
 
 For SDD-RIPER-only work, `/sdd` is the shorter command, but this command may also handle SDD-RIPER when the user asks for it.
 
@@ -359,7 +382,7 @@ Expected behavior:
 9. If existing docs are present, back them up into `docs/archive/` before reading, interpreting, moving, rewriting, or replacing doc contents.
 10. After the backup exists, read the docs and check them against the real codebase before landing the new structure.
 11. Use `docs/governance/context/MIGRATION_NOTES.tmp.md` as local-only working notes when needed to avoid losing migration context.
-12. Do not write `project-doc-modes`, `/project-doc-modes`, `/sdd`, `$project-doc-modes`, `SKILL.md`, or local install paths into generated target docs.
+12. Do not write `project-doc-modes`, `/project-doc-modes`, `/project-doc-modes-sync`, `/project-doc-modes-verify`, `/sdd`, `$project-doc-modes`, `SKILL.md`, or local install paths into generated target docs.
 13. Keep generated docs local-only in Git unless the user explicitly asks to track, stage, or commit them.
 14. For iterative docs, follow `PRD -> PHASE -> SPEC`: requirements first, phase plans next, SPEC docs under each phase.
 15. When team vibe coding or SDD-RIPER is requested, read the SDD-RIPER reference and record stage, approval gates, review path, and Reverse Sync path.
@@ -367,7 +390,74 @@ Expected behavior:
 17. Scaffold or migrate the repository docs with minimal changes.
 18. Run the verification checklist before claiming completion.
 
+Use `/project-doc-modes-sync` for hook-safe incremental Reverse Sync after the initial structure already exists.
+Use `/project-doc-modes-verify` for read-only structure checks.
+
 If the user supplied extra arguments, treat them as additional intent:
+
+$ARGUMENTS
+"""
+
+    if command == "project-doc-modes-sync":
+        return f"""---
+description: Incrementally reverse-sync project docs from the latest session or hook event.
+argument-hint: [session summary, changed files, verification output]
+---
+
+Use the installed `project-doc-modes` workflow in `sync` mode.
+
+This command is hook-safe: it is non-interactive, incremental, and must not rerun the full init or migration flow.
+
+Primary source of truth:
+- @{skill_md}
+- @{rules_ref}
+
+Read the minimum extra context you need:
+- @{rules_ref} for incremental sync rules, SDD-RIPER Reverse Sync paths, and verification
+
+Expected behavior:
+1. Inspect current entrypoints, active mode markers, `docs/README.md`, `git status --short`, and changed file names.
+2. Use the supplied session summary, changed files, verification commands and output, or hook payload as the evidence source.
+3. Do not ask setup questions. If required context is missing, record a concise pending item or report the missing input.
+4. Do not choose or change the repository mode, migrate the doc tree, run a broad pre-migration archive, or rewrite the documentation system.
+5. Do not edit user code, tests, dependencies, runtime configuration, APIs, schemas, or product logic.
+6. Update only docs affected by the latest session: status, context deltas, active implementation records, review notes, decisions, release notes, or stale entrypoint indexes.
+7. Update PRD, PHASE, or SPEC content only when the session explicitly changed requirements, intended behavior, architecture, or acceptance criteria.
+8. Preserve the `PRD -> PHASE -> SPEC` chain and write Reverse Sync records under the active mode path.
+9. Keep generated docs local-only in Git unless the user explicitly asks to track, stage, commit, or push them.
+10. Run the incremental verification checklist before claiming completion.
+
+If the user supplied extra arguments or hook payload, treat them as the evidence for this sync:
+
+$ARGUMENTS
+"""
+
+    if command == "project-doc-modes-verify":
+        return f"""---
+description: Verify repository documentation structure without changing docs.
+argument-hint: [mode, version, or paths to check]
+---
+
+Use the installed `project-doc-modes` workflow in `verify` mode.
+
+This command is read-only unless the user explicitly asks for repairs.
+
+Primary source of truth:
+- @{skill_md}
+- @{rules_ref}
+
+Read the minimum extra context you need:
+- @{rules_ref} for structure, entrypoint, local-only, leakage, and SDD-RIPER checks
+
+Expected behavior:
+1. Inspect root Markdown files, `docs/`, active mode markers, current version pointers, and `git status --short`.
+2. Run or emulate the verification checklist from the rules reference.
+3. Check root Markdown limits, `docs/archive/`, `PRD -> PHASE -> SPEC` placement, entrypoint links, Claude bridge behavior, local-only policy, and local path leakage.
+4. Check SDD-RIPER CodeMap, context bundle, review, and Reverse Sync paths only when SDD-RIPER is active.
+5. Do not create, move, archive, rewrite, stage, commit, or push files unless the user explicitly asks for repairs.
+6. Report findings by severity with exact file paths and commands run.
+
+If the user supplied extra arguments, treat them as verification scope:
 
 $ARGUMENTS
 """
@@ -398,7 +488,7 @@ Expected behavior:
 8. If existing docs are present, back them up into `docs/archive/` before reading, interpreting, moving, rewriting, or replacing doc contents.
 9. After the backup exists, read the docs and check them against the real codebase before landing the new structure.
 10. Use `docs/governance/context/MIGRATION_NOTES.tmp.md` as local-only working notes when needed to avoid losing migration context.
-11. Do not write `project-doc-modes`, `/project-doc-modes`, `/sdd`, `$project-doc-modes`, `SKILL.md`, or local install paths into generated target docs.
+11. Do not write `project-doc-modes`, `/project-doc-modes`, `/project-doc-modes-sync`, `/project-doc-modes-verify`, `/sdd`, `$project-doc-modes`, `SKILL.md`, or local install paths into generated target docs.
 12. Put CodeMap and context bundles under `docs/governance/context/`.
 13. Record the current RIPER stage, human approval gates, spec-vs-code review path, and Reverse Sync path.
 14. For upgrades, copy a snapshot into `docs/archive/` before updating current docs; do not empty `docs/` unless the user requests a full reset.
@@ -417,7 +507,7 @@ def install_claude_commands(skill_root: Path, force: bool) -> list[Path]:
     commands_root.mkdir(parents=True, exist_ok=True)
 
     installed: list[Path] = []
-    for command, destination in zip(("project-doc-modes", "sdd"), claude_command_paths(skill_root)):
+    for command, destination in zip(CLAUDE_COMMANDS, claude_command_paths(skill_root)):
         if destination.exists():
             if not force:
                 raise FileExistsError(f"Refusing to overwrite existing path: {destination}")
@@ -540,7 +630,7 @@ def run_self_test() -> int:
             require_equal(
                 "claude commands",
                 relative_files(commands_root),
-                ["project-doc-modes.md", "sdd.md"],
+                CLAUDE_COMMAND_FILES,
             )
             (commands_root / "project-doc-modes.md").unlink()
             (commands_root / "project-doc-modes.md").mkdir()
@@ -551,7 +641,9 @@ def run_self_test() -> int:
             )
             project_command = (commands_root / "project-doc-modes.md").read_text(encoding="utf-8")
             sdd_command = (commands_root / "sdd.md").read_text(encoding="utf-8")
-            for command_text_value in (project_command, sdd_command):
+            sync_command = (commands_root / "project-doc-modes-sync.md").read_text(encoding="utf-8")
+            verify_command = (commands_root / "project-doc-modes-verify.md").read_text(encoding="utf-8")
+            for command_text_value in (project_command, sdd_command, sync_command, verify_command):
                 require("@~/.claude/skills/project-doc-modes/SKILL.md" in command_text_value, "missing skill reference")
                 require(
                     "@~/.claude/skills/project-doc-modes/references/rules.md" in command_text_value,
@@ -560,6 +652,9 @@ def run_self_test() -> int:
                 require("$ARGUMENTS" in command_text_value, "missing argument passthrough")
                 require("agents/openai.yaml" not in command_text_value, "claude command leaked Codex-only file")
                 require(str(test_root) not in command_text_value, "claude command leaked temp absolute path")
+            require("hook-safe" in sync_command, "sync command missing hook-safe contract")
+            require("Do not ask setup questions" in sync_command, "sync command may prompt during hooks")
+            require("read-only" in verify_command, "verify command missing read-only contract")
 
             os.environ["HOME"] = str(test_root / "home-custom-runtime")
             os.environ["CODEX_HOME"] = str(test_root / "custom-codex-home")
@@ -584,8 +679,19 @@ def run_self_test() -> int:
             require_equal(
                 "custom claude commands",
                 relative_files(custom_commands_root),
-                ["project-doc-modes.md", "sdd.md"],
+                CLAUDE_COMMAND_FILES,
             )
+            for command_file in CLAUDE_COMMAND_FILES:
+                custom_command = (custom_commands_root / command_file).read_text(encoding="utf-8")
+                require(
+                    "@$CLAUDE_HOME/skills/project-doc-modes/SKILL.md" in custom_command,
+                    "custom claude command missing CLAUDE_HOME skill reference",
+                )
+                require(
+                    "@$CLAUDE_HOME/skills/project-doc-modes/references/rules.md" in custom_command,
+                    "custom claude command missing CLAUDE_HOME rules reference",
+                )
+                require(str(test_root) not in custom_command, "custom claude command leaked temp absolute path")
             os.environ.pop("CLAUDE_HOME", None)
 
             os.environ["HOME"] = str(test_root / "home-wrong")
@@ -661,7 +767,7 @@ def run_self_test() -> int:
             require_equal(
                 "same-target claude commands",
                 relative_files(same_commands),
-                ["project-doc-modes.md", "sdd.md"],
+                CLAUDE_COMMAND_FILES,
             )
     finally:
         for name, value in original_env.items():
