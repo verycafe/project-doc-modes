@@ -4,10 +4,13 @@ Use this file when an AI assistant is asked to install `project-doc-modes`.
 
 Do not create or migrate any target-project docs during installation. Installation only places the Skill runtime files into the user's Codex or Claude Code Skill folder.
 
+Do not bind hooks during installation. Hook binding is a separate step; use `hooks.md` after installation when the user wants automatic sync.
+
 ## Source
 
 - GitHub repo: `https://github.com/verycafe/project-doc-modes`
 - Runtime package inside repo: `project-doc-modes/`
+- Hook binding instructions: `hooks.md`
 - Runtime payload:
 
 ```text
@@ -24,7 +27,7 @@ Codex:      ${CODEX_HOME:-$HOME/.codex}/skills/project-doc-modes
 Claude Code: ${CLAUDE_HOME:-$HOME/.claude}/skills/project-doc-modes
 ```
 
-Do not directly clone the GitHub repo into the final Skill folder. The repo contains maintainer files such as `README.md`, `install.md`, `assets/`, and `scripts/`; the final Skill folder should contain only the runtime payload above.
+Do not directly clone the GitHub repo into the final Skill folder. The repo contains maintainer files such as `README.md`, `install.md`, `hooks.md`, `assets/`, and `scripts/`; the final Skill folder should contain only the runtime payload above.
 
 ## Install Codex
 
@@ -72,3 +75,11 @@ references/rules.md
 ```
 
 The Claude Code commands are expected only for Claude Code installs. Use `/project-doc-modes` for init or migration, `/project-doc-modes-sync` for hook-safe incremental Reverse Sync, `/project-doc-modes-verify` for read-only checks, and `/sdd` for SDD-RIPER governance.
+
+To bind hooks after installation, ask an AI assistant from the target project:
+
+```text
+Fetch and follow instructions from https://raw.githubusercontent.com/verycafe/project-doc-modes/main/hooks.md
+```
+
+The default hook scope is the current project. Use `scope=global` only when the user explicitly wants global binding.

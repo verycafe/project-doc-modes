@@ -38,6 +38,7 @@ SOURCE_REPO_PATHS = [
     Path(".git"),
     Path("README.md"),
     Path("install.md"),
+    Path("hooks.md"),
     Path("assets"),
     Path("scripts"),
     Path(SKILL_NAME),
@@ -609,10 +610,12 @@ def run_self_test() -> int:
                 lambda: install("codex", codex_target, force=False),
             )
             (codex_target / "README.md").write_text("repo readme", encoding="utf-8")
+            (codex_target / "hooks.md").write_text("repo hook instructions", encoding="utf-8")
             (codex_target / "assets").mkdir()
             (codex_target / SKILL_NAME).mkdir()
             install("codex", codex_target, force=True)
             require(not (codex_target / "README.md").exists(), "codex force install left repo README")
+            require(not (codex_target / "hooks.md").exists(), "codex force install left repo hooks.md")
             require(not (codex_target / "assets").exists(), "codex force install left repo assets")
             require(not (codex_target / SKILL_NAME).exists(), "codex force install left nested package")
 

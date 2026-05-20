@@ -18,6 +18,8 @@ The workflow has three operating modes:
 - `sync`: hook-safe incremental Reverse Sync after the initial documentation system already exists
 - `verify`: read-only structure, entrypoint, local-only, and leakage checks
 
+Hook binding is a separate operation from installation and activation. Default hook binding is project-local and targets the current tool; global binding requires the user to explicitly request `scope=global`.
+
 Installation and activation are separate:
 - the Git repository for this skill contains only the original skill package
 - installing the skill copies the skill package into the user's Codex or Claude runtime
@@ -161,6 +163,21 @@ Use `verify` when:
 - do not rebuild the docs tree
 - do not rewrite PRD, PHASE, or SPEC content unless the latest session explicitly changed requirements, intended behavior, architecture, or acceptance criteria
 - update only the docs touched by the latest evidence and then run incremental verification
+
+## Hook Binding
+
+When the user asks to bind hooks for this workflow:
+- treat hook binding as separate from installation and from `init`
+- default to `scope=project`
+- default to the current tool where the user made the request
+- require explicit `scope=global` before editing global tool configuration
+- do not bind another tool unless the user explicitly names it
+- inspect the current tool's real hook support before editing
+- do not invent hook APIs, event names, config files, or command formats
+
+Project-scope binding should connect the current project to `sync` and then `verify` after a session or equivalent lifecycle event. If the current tool has no verified project-level hook support, report that project-local binding is unsupported instead of falling back to global scope.
+
+Global-scope binding may only proceed when the user explicitly requests it with `scope=global`. Preserve unrelated hooks and modify only the managed `project-doc-modes` binding.
 
 ## Workflow
 
@@ -348,7 +365,7 @@ When writing the docs:
 - if the user requests a language switch during migration, update current entrypoints to the new language and leave historical docs in archive with clear labels
 - reflect the confirmed role and current phase-document context in the generated governance and handoff docs
 - use the chosen display language for mode labels, section titles, prompts, and navigation text
-- write target docs as project-native governance, not as instructions to invoke `project-doc-modes`, `/project-doc-modes`, `/project-doc-modes-sync`, `/project-doc-modes-verify`, `/sdd`, `$project-doc-modes`, or an installed `SKILL.md`
+- write target docs as project-native governance, not as instructions to invoke `project-doc-modes`, `/project-doc-modes`, `/project-doc-modes-sync`, `/project-doc-modes-verify`, `/sdd`, `$project-doc-modes`, `hooks.md`, or an installed `SKILL.md`
 - never include absolute local paths such as `/Users/...`, `~/.codex/skills/...`, or `~/.claude/skills/...` in generated target docs
 - ensure generated `CLAUDE.md` explicitly references `AGENTS.md` as the canonical project rules entrypoint
 - in collaboration mode, record the current operating role and the editable, read-only, and forbidden paths for each role in the active docs

@@ -16,6 +16,18 @@
 Fetch and follow instructions from https://raw.githubusercontent.com/verycafe/project-doc-modes/main/install.md
 ```
 
+Hook 绑定是单独入口，默认只绑定当前项目：
+
+```text
+Fetch and follow instructions from https://raw.githubusercontent.com/verycafe/project-doc-modes/main/hooks.md
+```
+
+全局绑定必须由用户显式改参数：
+
+```text
+Fetch and follow instructions from https://raw.githubusercontent.com/verycafe/project-doc-modes/main/hooks.md with scope=global
+```
+
 默认 Skill 文件夹是：
 
 ```text
@@ -50,6 +62,7 @@ $CLAUDE_HOME/commands/sdd.md
 ```text
 .gitignore
 install.md
+hooks.md
 README.md
 assets/project-doc-modes-workflow.svg
 project-doc-modes/SKILL.md
@@ -145,6 +158,8 @@ Claude Code：
 8. 运行结构、泄漏、Git local-only、代码不可变等验证。
 
 后续 Hook 自动化不应重复执行完整初始化流程。Hook 应使用增量同步模式：读取本次会话摘要、变更文件和验证输出，只更新状态、索引、Implementation Record、Review、决策记录等受影响文档，然后做轻量结构和泄漏检查。
+
+Hook 绑定默认作用于当前项目。只有用户明确写 `scope=global` 时，AI 才能改当前工具的全局 Hook 配置；如果当前工具不支持项目级 Hook，不能静默降级成全局绑定。
 
 ## 规范逻辑和约束
 

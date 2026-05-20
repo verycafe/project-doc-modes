@@ -15,6 +15,38 @@ Mode rules:
 - `verify` must not modify files unless the user explicitly asks for repairs.
 - Hooks should call `sync` first and optionally `verify` after sync, not `init`.
 
+## Hook Binding
+
+Hook binding connects the current tool to the installed `sync` and `verify` workflow. It is separate from installation and from `init`.
+
+Defaults:
+- `action=bind`
+- `scope=project`
+- `tool=current`
+- `workflow=sync-then-verify`
+
+Rules:
+- Default hook binding is project-local.
+- Global binding is allowed only when the user explicitly requests `scope=global`.
+- Do not silently fall back from project scope to global scope.
+- Bind only the current tool unless the user explicitly names another tool.
+- Inspect the current tool's real hook support before editing.
+- Do not invent hook APIs, lifecycle events, config files, or command formats.
+- Preserve existing hooks and add or update only the managed `project-doc-modes` binding.
+- If active docs do not exist yet, the managed hook must not run `init`; it should report that initialization is required first.
+
+Allowed actions:
+- `inspect`: report current binding state without modifying files.
+- `bind`: add or update the managed hook binding.
+- `unbind`: remove only the managed hook binding and leave unrelated hooks untouched.
+
+Verification after hook binding:
+- report effective action, scope, tool, and project root
+- list modified hook or config files
+- confirm global config was untouched unless `scope=global`
+- confirm unrelated hooks were preserved
+- confirm the managed hook invokes `sync` and then `verify`
+
 ## Activation Safety
 
 This section applies when the installed skill is activated inside a target repository.
@@ -223,7 +255,7 @@ Entrypoints:
 Stale reference and leakage checks:
 ```bash
 rg -n "old-path|old-version|legacy-mode-name" AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
-rg -n 'project-doc-modes|(^|[^[:alnum:]_./-])(/project-doc-modes(-sync|-verify)?|/sdd)([^[:alnum:]_./-]|$)|\$project-doc-modes|\.codex/skills|\.claude/skills|SKILL\.md' AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
+rg -n 'project-doc-modes|(^|[^[:alnum:]_./-])(/project-doc-modes(-sync|-verify)?|/sdd)([^[:alnum:]_./-]|$)|\$project-doc-modes|hooks\.md|\.codex/skills|\.claude/skills|SKILL\.md' AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
 rg -n '/Users/|~/|\$HOME|/private/' AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
 test ! -f CLAUDE.md || rg -i 'read .*AGENTS\.md.*first|先.*AGENTS\.md' CLAUDE.md
 test ! -f AGENTS.md || rg -i 'canonical|规范入口|治理入口|source of truth' AGENTS.md
