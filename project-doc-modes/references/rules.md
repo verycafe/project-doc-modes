@@ -255,7 +255,7 @@ Entrypoints:
 Stale reference and leakage checks:
 ```bash
 rg -n "old-path|old-version|legacy-mode-name" AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
-rg -n 'project-doc-modes|(^|[^[:alnum:]_./-])(/project-doc-modes(-sync|-verify)?|/sdd)([^[:alnum:]_./-]|$)|\$project-doc-modes|hooks\.md|\.codex/skills|\.claude/skills|SKILL\.md' AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
+rg -n 'project-doc-modes|(^|[^[:alnum:]_./-])(/project-doc-modes(-sdd|-sync|-verify)?|/sdd)([^[:alnum:]_./-]|$)|\$project-doc-modes|hooks\.md|\.codex/skills|\.claude/skills|SKILL\.md' AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
 rg -n '/Users/|~/|\$HOME|/private/' AGENTS.md CLAUDE.md README.md docs -g '!docs/archive/**'
 test ! -f CLAUDE.md || rg -i 'read .*AGENTS\.md.*first|先.*AGENTS\.md' CLAUDE.md
 test ! -f AGENTS.md || rg -i 'canonical|规范入口|治理入口|source of truth' AGENTS.md

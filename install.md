@@ -53,9 +53,9 @@ Claude Code installation also creates:
 
 ```text
 $CLAUDE_HOME/commands/project-doc-modes.md
+$CLAUDE_HOME/commands/project-doc-modes-sdd.md
 $CLAUDE_HOME/commands/project-doc-modes-sync.md
 $CLAUDE_HOME/commands/project-doc-modes-verify.md
-$CLAUDE_HOME/commands/sdd.md
 ```
 
 ## Verify
@@ -74,7 +74,7 @@ SKILL.md
 references/rules.md
 ```
 
-The Claude Code commands are expected only for Claude Code installs. Use `/project-doc-modes` for init or migration, `/project-doc-modes-sync` for hook-safe incremental Reverse Sync, `/project-doc-modes-verify` for read-only checks, and `/sdd` for SDD-RIPER governance.
+The Claude Code commands are expected only for Claude Code installs. Use `/project-doc-modes` for init or migration, `/project-doc-modes-sdd` for SDD-RIPER governance, `/project-doc-modes-sync` for hook-safe incremental Reverse Sync, and `/project-doc-modes-verify` for read-only checks.
 
 To bind hooks after installation, ask an AI assistant from the target project:
 

@@ -16,11 +16,15 @@ SKILL_NAME = "project-doc-modes"
 PACKAGE_ROOT = ROOT / SKILL_NAME
 CLAUDE_COMMANDS = (
     "project-doc-modes",
+    "project-doc-modes-sdd",
     "project-doc-modes-sync",
     "project-doc-modes-verify",
-    "sdd",
 )
 CLAUDE_COMMAND_FILES = sorted(f"{command}.md" for command in CLAUDE_COMMANDS)
+LEGACY_CLAUDE_COMMANDS = (
+    "sdd",
+)
+LEGACY_CLAUDE_COMMAND_FILES = [f"{command}.md" for command in LEGACY_CLAUDE_COMMANDS]
 COMMON_PATHS = [
     Path("SKILL.md"),
     Path("references/rules.md"),
@@ -362,7 +366,7 @@ argument-hint: [init goal, mode, language, or upgrade target]
 
 Use the installed `project-doc-modes` workflow in `init` mode unless the user explicitly asks for `sync` or `verify`.
 
-For SDD-RIPER-only work, `/sdd` is the shorter command, but this command may also handle SDD-RIPER when the user asks for it.
+For SDD-RIPER-only work, `/project-doc-modes-sdd` is the namespaced command, but this command may also handle SDD-RIPER when the user asks for it.
 
 Primary source of truth:
 - @{skill_md}
@@ -383,7 +387,7 @@ Expected behavior:
 9. If existing docs are present, back them up into `docs/archive/` before reading, interpreting, moving, rewriting, or replacing doc contents.
 10. After the backup exists, read the docs and check them against the real codebase before landing the new structure.
 11. Use `docs/governance/context/MIGRATION_NOTES.tmp.md` as local-only working notes when needed to avoid losing migration context.
-12. Do not write `project-doc-modes`, `/project-doc-modes`, `/project-doc-modes-sync`, `/project-doc-modes-verify`, `/sdd`, `$project-doc-modes`, `SKILL.md`, or local install paths into generated target docs.
+12. Do not write `project-doc-modes`, `/project-doc-modes`, `/project-doc-modes-sdd`, `/project-doc-modes-sync`, `/project-doc-modes-verify`, `/sdd`, `$project-doc-modes`, `SKILL.md`, or local install paths into generated target docs.
 13. Keep generated docs local-only in Git unless the user explicitly asks to track, stage, or commit them.
 14. For iterative docs, follow `PRD -> PHASE -> SPEC`: requirements first, phase plans next, SPEC docs under each phase.
 15. When team vibe coding or SDD-RIPER is requested, read the SDD-RIPER reference and record stage, approval gates, review path, and Reverse Sync path.
@@ -463,7 +467,7 @@ If the user supplied extra arguments, treat them as verification scope:
 $ARGUMENTS
 """
 
-    if command == "sdd":
+    if command == "project-doc-modes-sdd":
         return f"""---
 description: Start or apply SDD-RIPER governance with project-doc-modes.
 argument-hint: [goal, version, phase, or language]
@@ -489,7 +493,7 @@ Expected behavior:
 8. If existing docs are present, back them up into `docs/archive/` before reading, interpreting, moving, rewriting, or replacing doc contents.
 9. After the backup exists, read the docs and check them against the real codebase before landing the new structure.
 10. Use `docs/governance/context/MIGRATION_NOTES.tmp.md` as local-only working notes when needed to avoid losing migration context.
-11. Do not write `project-doc-modes`, `/project-doc-modes`, `/project-doc-modes-sync`, `/project-doc-modes-verify`, `/sdd`, `$project-doc-modes`, `SKILL.md`, or local install paths into generated target docs.
+11. Do not write `project-doc-modes`, `/project-doc-modes`, `/project-doc-modes-sdd`, `/project-doc-modes-sync`, `/project-doc-modes-verify`, `/sdd`, `$project-doc-modes`, `SKILL.md`, or local install paths into generated target docs.
 12. Put CodeMap and context bundles under `docs/governance/context/`.
 13. Record the current RIPER stage, human approval gates, spec-vs-code review path, and Reverse Sync path.
 14. For upgrades, copy a snapshot into `docs/archive/` before updating current docs; do not empty `docs/` unless the user requests a full reset.
@@ -508,6 +512,12 @@ def install_claude_commands(skill_root: Path, force: bool) -> list[Path]:
     commands_root.mkdir(parents=True, exist_ok=True)
 
     installed: list[Path] = []
+    if force:
+        for command_file in LEGACY_CLAUDE_COMMAND_FILES:
+            legacy_path = commands_root / command_file
+            if legacy_path.exists():
+                remove_path(legacy_path)
+
     for command, destination in zip(CLAUDE_COMMANDS, claude_command_paths(skill_root)):
         if destination.exists():
             if not force:
@@ -635,6 +645,7 @@ def run_self_test() -> int:
                 relative_files(commands_root),
                 CLAUDE_COMMAND_FILES,
             )
+            (commands_root / "sdd.md").write_text("stale legacy command", encoding="utf-8")
             (commands_root / "project-doc-modes.md").unlink()
             (commands_root / "project-doc-modes.md").mkdir()
             install("claude", claude_target, force=True)
@@ -642,8 +653,14 @@ def run_self_test() -> int:
                 (commands_root / "project-doc-modes.md").is_file(),
                 "claude force install did not replace command directory",
             )
+            require(not (commands_root / "sdd.md").exists(), "claude force install left legacy /sdd command")
+            require_equal(
+                "claude commands after legacy cleanup",
+                relative_files(commands_root),
+                CLAUDE_COMMAND_FILES,
+            )
             project_command = (commands_root / "project-doc-modes.md").read_text(encoding="utf-8")
-            sdd_command = (commands_root / "sdd.md").read_text(encoding="utf-8")
+            sdd_command = (commands_root / "project-doc-modes-sdd.md").read_text(encoding="utf-8")
             sync_command = (commands_root / "project-doc-modes-sync.md").read_text(encoding="utf-8")
             verify_command = (commands_root / "project-doc-modes-verify.md").read_text(encoding="utf-8")
             for command_text_value in (project_command, sdd_command, sync_command, verify_command):
