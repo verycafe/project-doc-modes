@@ -124,6 +124,58 @@ Claude Code：
 
 执行初始化或迁移时，Skill 会先检查目标项目，再用少量问题确认模式、语言、版本、阶段或角色边界，然后才创建或迁移文档。`sync` 不提问、不重建结构；`verify` 默认只读。
 
+## 命令速查
+
+```text
+/project-doc-modes
+= 初始化/迁移/整理文档治理
+
+/project-doc-modes-sdd
+= 启用规格驱动的开发治理
+
+/project-doc-modes-sync
+= 每轮会话后增量同步文档
+
+/project-doc-modes-verify
+= 检查文档结构和一致性
+```
+
+Codex 里只有 `/project-doc-modes` 一个 Skill 入口，使用 `init`、`sdd`、`sync`、`verify` 参数或自然语言表达模式。Claude Code 安装后会生成上面的独立命令包装。
+
+## 启动后会发生什么
+
+`/project-doc-modes` 会进入初始化、迁移或整理流程：
+
+1. 检查仓库结构、已有文档、代码目录、配置文件和 `git status`。
+2. 如已有活跃文档，先复制到 `docs/archive/`，再阅读和迁移。
+3. 确认协作模式或迭代模式、文档语言、版本/阶段或角色边界。
+4. 生成或整理 `AGENTS.md`、`CLAUDE.md`、`README.md` 和分类 `docs/`。
+5. 验证根目录 Markdown、归档位置、本地路径泄漏、Git local-only 和代码不可变规则。
+
+`/project-doc-modes-sdd` 会启用规格驱动开发治理：
+
+1. 先检查当前仓库和已有文档，不直接写代码。
+2. 建立或整理 `PRD -> PHASE -> SPEC` 链路。
+3. 根据模式创建 SDD-RIPER 所需的 CodeMap、Context Bundle、PLAN、REVIEW、IMPLEMENTATION_RECORD。
+4. 记录执行规则：No Spec, No Code；Spec is Truth；Reverse Sync。
+5. 后续开发按 Research、Innovate、Plan、Execute、Review、Archive 的阶段推进。
+
+`/project-doc-modes-sync` 会做增量同步：
+
+1. 读取本轮会话摘要、变更文件、`git status`、验证命令和输出。
+2. 只更新受本轮证据影响的状态、索引、Implementation Record、Review、决策记录或 Release 记录。
+3. 不重新询问模式，不重建文档结构，不做全量归档，不改代码。
+4. 如果发现实现事实和旧文档不一致，只做必要的 Reverse Sync。
+5. 最后做轻量结构和泄漏检查。
+
+`/project-doc-modes-verify` 会做只读检查：
+
+1. 检查根目录是否只保留 `AGENTS.md`、`CLAUDE.md`、`README.md`。
+2. 检查 `docs/`、`docs/archive/`、`docs/product/` 或 `docs/collaboration/` 的结构是否符合当前模式。
+3. 检查 `PRD -> PHASE -> SPEC` 是否放在正确层级。
+4. 检查入口索引、Claude bridge、local-only 策略和本机路径泄漏。
+5. 默认只报告问题，不创建、移动、归档、重写、stage、commit 或 push 文件。
+
 ## 项目结构
 
 初始化后的目标项目文档结构通常是：
