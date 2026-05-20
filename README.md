@@ -4,7 +4,7 @@
 
 ## 维护文档
 
-本仓库自身的活跃维护文档入口是 `docs/README.md`。当前采用迭代模式，当前版本为 `v0.1`，当前阶段为 `PHASE-1-sdd-knowledge-structure`。
+本仓库自身的活跃维护文档入口是 `docs/README.md`。当前采用迭代模式，当前版本为 `v0.1`。
 
 ## 配图
 
