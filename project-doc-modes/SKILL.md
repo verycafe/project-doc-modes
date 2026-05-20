@@ -125,7 +125,9 @@ Codex:
 - say `project-doc-modes init` for first activation, migration, or full upgrades
 - say `project-doc-modes sync` for hook-safe incremental Reverse Sync from the latest session
 - say `project-doc-modes verify` for read-only structure checks
+- say `project-doc-modes sdd` for SDD-RIPER governance
 - request SDD-RIPER or spec-driven governance in normal language after the workflow starts
+- Codex uses one Skill entry with arguments or natural-language routing; it does not install separate slash command wrapper files for each mode
 
 Claude Code:
 - use `/project-doc-modes` for init, migration, full upgrades, or argument-routed general workflow

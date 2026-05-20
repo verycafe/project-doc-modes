@@ -80,6 +80,21 @@ Codex：
 2. 激活 `project-doc-modes` Skill。
 3. 用自然语言说明要初始化、迁移、整理文档，或启用 SDD-RIPER。
 
+Codex 只显示一个 Skill 入口：`/project-doc-modes`。不同模式通过参数或自然语言路由：
+
+```text
+/project-doc-modes init
+/project-doc-modes sync
+/project-doc-modes verify
+/project-doc-modes sdd
+```
+
+也可以直接说：
+
+```text
+用 project-doc-modes sync 模式，把本轮会话和代码变更同步回文档。
+```
+
 Claude Code：
 
 1. 进入目标项目。
