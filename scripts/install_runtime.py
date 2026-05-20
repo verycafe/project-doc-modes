@@ -27,8 +27,14 @@ LEGACY_CLAUDE_COMMANDS = (
 LEGACY_CLAUDE_COMMAND_FILES = [f"{command}.md" for command in LEGACY_CLAUDE_COMMANDS]
 COMMON_PATHS = [
     Path("SKILL.md"),
+    Path("references/init.md"),
     Path("references/rules.md"),
+    Path("references/sdd.md"),
+    Path("references/structure.md"),
+    Path("references/sync.md"),
+    Path("references/verify.md"),
 ]
+EXPECTED_RUNTIME_FILES = sorted(path.as_posix() for path in COMMON_PATHS)
 LEGACY_SKILL_PATHS = [
     Path("references/collaboration-mode.md"),
     Path("references/iterative-mode.md"),
@@ -40,6 +46,7 @@ STALE_RUNTIME_PATHS = [
 ]
 SOURCE_REPO_PATHS = [
     Path(".git"),
+    Path(".claude-plugin"),
     Path("README.md"),
     Path("install.md"),
     Path("hooks.md"),
@@ -357,6 +364,11 @@ def command_reference(path: Path) -> str:
 def command_text(command: str, skill_root: Path) -> str:
     skill_md = command_reference(skill_root / "SKILL.md")
     rules_ref = command_reference(skill_root / "references" / "rules.md")
+    init_ref = command_reference(skill_root / "references" / "init.md")
+    sync_ref = command_reference(skill_root / "references" / "sync.md")
+    verify_ref = command_reference(skill_root / "references" / "verify.md")
+    sdd_ref = command_reference(skill_root / "references" / "sdd.md")
+    structure_ref = command_reference(skill_root / "references" / "structure.md")
 
     if command == "project-doc-modes":
         return f"""---
@@ -371,9 +383,14 @@ For SDD-RIPER-only work, `/project-doc-modes-sdd` is the namespaced command, but
 Primary source of truth:
 - @{skill_md}
 - @{rules_ref}
+- @{init_ref}
+- @{structure_ref}
 
 Read the minimum extra context you need:
-- @{rules_ref} for mode-specific paths, SDD-RIPER rules, and verification before finishing
+- @{init_ref} for initialization and migration
+- @{structure_ref} for document layout
+- @{sdd_ref} when SDD-RIPER is requested
+- @{verify_ref} for verification before finishing
 
 Expected behavior:
 1. Inspect the target repository before changing docs.
@@ -416,9 +433,13 @@ This command is hook-safe: it is non-interactive, incremental, and must not reru
 Primary source of truth:
 - @{skill_md}
 - @{rules_ref}
+- @{sync_ref}
+- @{structure_ref}
 
 Read the minimum extra context you need:
-- @{rules_ref} for incremental sync rules, SDD-RIPER Reverse Sync paths, and verification
+- @{sync_ref} for hook-safe incremental sync rules
+- @{sdd_ref} for SDD-RIPER Reverse Sync paths when active
+- @{verify_ref} for incremental verification
 
 Expected behavior:
 1. Inspect current entrypoints, active mode markers, `docs/README.md`, `git status --short`, and changed file names.
@@ -450,9 +471,13 @@ This command is read-only unless the user explicitly asks for repairs.
 Primary source of truth:
 - @{skill_md}
 - @{rules_ref}
+- @{verify_ref}
+- @{structure_ref}
 
 Read the minimum extra context you need:
-- @{rules_ref} for structure, entrypoint, local-only, leakage, and SDD-RIPER checks
+- @{verify_ref} for structure, entrypoint, local-only, and leakage checks
+- @{structure_ref} for expected doc paths
+- @{sdd_ref} when SDD-RIPER is active
 
 Expected behavior:
 1. Inspect root Markdown files, `docs/`, active mode markers, current version pointers, and `git status --short`.
@@ -478,9 +503,13 @@ Use the installed `project-doc-modes` workflow in SDD-RIPER mode.
 Primary source of truth:
 - @{skill_md}
 - @{rules_ref}
+- @{sdd_ref}
+- @{structure_ref}
 
 Read the minimum extra context you need:
-- @{rules_ref} for SDD-RIPER paths, mode-specific rules, and verification before finishing
+- @{sdd_ref} for SDD-RIPER paths, validation loops, and human gates
+- @{structure_ref} for mode-specific document paths
+- @{verify_ref} for verification before finishing
 
 Expected behavior:
 1. Inspect the target repository before changing docs.
@@ -601,7 +630,7 @@ def run_self_test() -> int:
             require_equal(
                 "codex payload",
                 relative_files(codex_target),
-                ["SKILL.md", "references/rules.md"],
+                EXPECTED_RUNTIME_FILES,
             )
             (codex_target / "references" / "iterative-mode.md").write_text("stale", encoding="utf-8")
             (codex_target / "references" / "nested").mkdir()
@@ -633,11 +662,11 @@ def run_self_test() -> int:
             claude_target = expected_skill_target("claude")
             require(detect_runtime(claude_target) == "claude", "claude auto-detect failed")
             install("claude", claude_target, force=False)
-            require_equal("claude payload", relative_files(claude_target), ["SKILL.md", "references/rules.md"])
+            require_equal("claude payload", relative_files(claude_target), EXPECTED_RUNTIME_FILES)
             (claude_target / "agents").mkdir()
             (claude_target / "agents" / "openai.yaml").write_text("stale", encoding="utf-8")
             install("claude", claude_target, force=True)
-            require_equal("claude payload after cleanup", relative_files(claude_target), ["SKILL.md", "references/rules.md"])
+            require_equal("claude payload after cleanup", relative_files(claude_target), EXPECTED_RUNTIME_FILES)
             require("agents" not in relative_dirs(claude_target), "claude force install left stale agents directory")
             commands_root = runtime_home("claude") / "commands"
             require_equal(
@@ -683,7 +712,7 @@ def run_self_test() -> int:
             require_equal(
                 "custom codex payload",
                 relative_files(custom_codex_target),
-                ["SKILL.md", "references/rules.md"],
+                EXPECTED_RUNTIME_FILES,
             )
             os.environ.pop("CODEX_HOME", None)
 
@@ -693,7 +722,7 @@ def run_self_test() -> int:
             require_equal(
                 "custom claude payload",
                 relative_files(custom_claude_target),
-                ["SKILL.md", "references/rules.md"],
+                EXPECTED_RUNTIME_FILES,
             )
             custom_commands_root = runtime_home("claude") / "commands"
             require_equal(

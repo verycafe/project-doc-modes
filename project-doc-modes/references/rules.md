@@ -2,6 +2,13 @@
 
 Use this reference for mode-specific layouts, SDD-RIPER governance, and final verification.
 
+For lower-context mode-specific reading, prefer:
+- `init.md`: first activation, migration, archive-first behavior, setup questions
+- `sync.md`: hook-safe incremental Reverse Sync
+- `verify.md`: read-only verification
+- `sdd.md`: SDD-RIPER, human gates, Validation Loop
+- `structure.md`: document layout, glossary, research, experience, local-only rules
+
 ## Operating Modes
 
 Choose one operating mode before acting:
@@ -116,7 +123,10 @@ Required docs:
 - `docs/governance/STATUS.md`
 - `docs/governance/WORKFLOW.md`
 - `docs/governance/RELEASES.md`
-- `docs/governance/context/` for CodeMap and context bundles when SDD-RIPER is active
+- `docs/governance/context/` for CodeMap, context bundles, and glossary
+- `docs/governance/context/GLOSSARY.md` for project vocabulary
+- `docs/governance/research/` for research notes, external evidence, repository studies, and support matrices
+- `docs/governance/experience/` for reusable lessons, user preferences, and valuable knowledge not yet ready for PRD
 - `docs/product/CURRENT.md`
 - `docs/product/vX.Y/README.md`
 - requirements under `docs/product/vX.Y/requirements/`
@@ -143,6 +153,7 @@ Operating laws:
 - No Spec, No Code: code edits need an active requirement, phase plan, and executable spec.
 - Spec is Truth: active specs define intended behavior; implementation drift needs review.
 - Reverse Sync: bugs and discoveries update specs first or in the same change as code.
+- Validation Loop Required: each executable SPEC should include the command, script, smoke check, hook inspect, simulated payload, or other feedback loop that proves the change.
 - If existing repository rules say implementation outranks docs, surface that conflict before changing governance; do not silently replace the repository's rule hierarchy.
 
 Stages:
@@ -202,6 +213,9 @@ Required first read:
 Allowed updates:
 - `docs/governance/STATUS.md`
 - `docs/governance/context/CODEMAP.md` or `docs/governance/context/CONTEXT_BUNDLE.md` when the session adds durable code evidence
+- `docs/governance/context/GLOSSARY.md` when the session resolves durable terminology
+- `docs/governance/research/` when the session adds evidence-backed research that is not yet a requirement
+- `docs/governance/experience/` when the session adds reusable lessons, user preferences, or operational knowledge
 - active `IMPLEMENTATION_RECORD.md`
 - active `REVIEW.md`
 - decision records, release notes, role status, handoff docs, or index files directly affected by the session
@@ -250,6 +264,9 @@ Structure:
 - iterative SPEC docs sit under `docs/product/vX.Y/phases/PHASE-*/specs/`
 - collaboration SDD-RIPER SPEC docs sit under `docs/collaboration/sdd/phases/PHASE-*/specs/`
 - CodeMap and context bundles live under `docs/governance/context/` when SDD-RIPER is active
+- project vocabulary lives in `docs/governance/context/GLOSSARY.md` when a glossary is created
+- research notes live under `docs/governance/research/`
+- reusable experience notes live under `docs/governance/experience/`
 - generated docs were not staged or committed unless the user explicitly requested Git tracking
 - newly generated untracked local-only docs, including archive snapshots, are covered by `.git/info/exclude`
 

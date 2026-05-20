@@ -16,6 +16,7 @@ from typing import Any
 MANAGED_EVENT = "Stop"
 MANAGED_STATUS = "project-doc-modes sync + verify"
 MANAGED_SCRIPT_NAME = "project_doc_modes_stop.py"
+MANAGED_AUDIT_LOG_NAME = "project_doc_modes_stop.log"
 MANAGED_SCRIPT_RELATIVE = Path(".codex") / "hooks" / MANAGED_SCRIPT_NAME
 MANAGED_COMMAND = (
     "/usr/bin/python3 "
@@ -35,6 +36,7 @@ import json
 import os
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -43,6 +45,7 @@ ACTIVE_DOC_MARKERS = (
     ("docs/product/CURRENT.md",),
     ("docs/collaboration/ROLE_MATRIX.md",),
 )
+AUDIT_LOG_NAME = "project_doc_modes_stop.log"
 
 
 def read_payload() -> dict:
@@ -92,6 +95,25 @@ def write_json(data: dict) -> None:
     sys.stdout.write(json.dumps(data, ensure_ascii=False))
 
 
+def append_audit(root: Path, payload: dict, action: str, entered_sync: bool) -> None:
+    entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "action": action,
+        "entered_sync": entered_sync,
+        "cwd": str(payload.get("cwd") or os.getcwd()),
+        "project_root": str(root),
+        "transcript_path": payload.get("transcript_path"),
+        "stop_hook_active": bool(payload.get("stop_hook_active")),
+    }
+    try:
+        log_path = root / ".codex" / "hooks" / AUDIT_LOG_NAME
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        with log_path.open("a", encoding="utf-8") as log_file:
+            log_file.write(json.dumps(entry, ensure_ascii=False, sort_keys=True) + "\n")
+    except OSError:
+        pass
+
+
 def continuation_prompt(root: Path, payload: dict) -> str:
     transcript_path = payload.get("transcript_path")
     transcript_note = (
@@ -119,12 +141,15 @@ def continuation_prompt(root: Path, payload: dict) -> str:
 
 def main() -> int:
     payload = read_payload()
+    root = project_root(payload)
+
     if payload.get("stop_hook_active"):
+        append_audit(root, payload, "skip_stop_hook_active", False)
         write_json({})
         return 0
 
-    root = project_root(payload)
     if not active_docs_exist(root):
+        append_audit(root, payload, "missing_active_docs", False)
         write_json(
             {
                 "systemMessage": (
@@ -135,6 +160,7 @@ def main() -> int:
         )
         return 0
 
+    append_audit(root, payload, "continue_sync_verify", True)
     write_json({"decision": "block", "reason": continuation_prompt(root, payload)})
     return 0
 
@@ -199,6 +225,10 @@ def hooks_json_path(root: Path) -> Path:
 
 def hook_script_path(root: Path) -> Path:
     return root / MANAGED_SCRIPT_RELATIVE
+
+
+def audit_log_path(root: Path) -> Path:
+    return root / ".codex" / "hooks" / MANAGED_AUDIT_LOG_NAME
 
 
 def read_hooks(path: Path) -> dict[str, Any]:
@@ -323,6 +353,7 @@ def inspect(root: Path) -> dict[str, Any]:
         "project": str(root),
         "hooks_json": str(hooks_path),
         "hook_script": str(script_path),
+        "audit_log": str(audit_log_path(root)),
         "bound": bound,
         "script_exists": script_path.exists(),
     }
@@ -417,6 +448,7 @@ def run_self_test() -> int:
         require((root / ".codex" / "hooks.json").is_file(), "hooks.json missing")
         require((root / ".codex" / "hooks" / MANAGED_SCRIPT_NAME).is_file(), "hook script missing")
         require(not bind_report["active_docs_exist"], "greenfield repo should not look initialized")
+        log_path = audit_log_path(root)
 
         hooks_data = json.loads((root / ".codex" / "hooks.json").read_text(encoding="utf-8"))
         require(
@@ -426,6 +458,23 @@ def run_self_test() -> int:
 
         second_bind = run_action("bind", root)
         require(second_bind["bound"], "second bind lost hook")
+
+        missing_payload = json.dumps({"cwd": str(root), "hook_event_name": "Stop", "stop_hook_active": False})
+        missing_result = subprocess.run(
+            [sys.executable, str(root / ".codex" / "hooks" / MANAGED_SCRIPT_NAME)],
+            input=missing_payload,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        require(missing_result.returncode == 0, f"missing-doc hook failed: {missing_result.stderr}")
+        missing_output = json.loads(missing_result.stdout)
+        require("systemMessage" in missing_output, "missing-doc hook should report missing init")
+        missing_log = log_path.read_text(encoding="utf-8").strip().splitlines()
+        require(missing_log, "missing-doc hook did not write audit log")
+        missing_entry = json.loads(missing_log[-1])
+        require(missing_entry["action"] == "missing_active_docs", "missing-doc audit action mismatch")
+        require(missing_entry["entered_sync"] is False, "missing-doc audit should not enter sync")
 
         (root / "AGENTS.md").write_text("rules\n", encoding="utf-8")
         (root / "docs").mkdir()
@@ -442,6 +491,9 @@ def run_self_test() -> int:
         output = json.loads(hook_result.stdout)
         require(output.get("decision") == "block", "hook did not request continuation")
         require("project-doc-modes" in output.get("reason", ""), "continuation missing workflow name")
+        continue_entry = json.loads(log_path.read_text(encoding="utf-8").strip().splitlines()[-1])
+        require(continue_entry["action"] == "continue_sync_verify", "continuation audit action mismatch")
+        require(continue_entry["entered_sync"] is True, "continuation audit should enter sync")
 
         active_payload = json.dumps({"cwd": str(root), "hook_event_name": "Stop", "stop_hook_active": True})
         active_result = subprocess.run(
@@ -452,6 +504,9 @@ def run_self_test() -> int:
             check=False,
         )
         require(active_result.stdout == "{}", "stop_hook_active guard should return empty JSON object")
+        active_entry = json.loads(log_path.read_text(encoding="utf-8").strip().splitlines()[-1])
+        require(active_entry["action"] == "skip_stop_hook_active", "active guard audit action mismatch")
+        require(active_entry["entered_sync"] is False, "active guard audit should not enter sync")
 
         unbind_report = run_action("unbind", root)
         require(not unbind_report["bound"], "unbind left hook bound")

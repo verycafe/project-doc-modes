@@ -15,7 +15,12 @@ Do not bind hooks during installation. Hook binding is a separate step; use `hoo
 
 ```text
 SKILL.md
+references/init.md
 references/rules.md
+references/sdd.md
+references/structure.md
+references/sync.md
+references/verify.md
 ```
 
 ## Targets
@@ -71,7 +76,12 @@ Expected runtime files:
 
 ```text
 SKILL.md
+references/init.md
 references/rules.md
+references/sdd.md
+references/structure.md
+references/sync.md
+references/verify.md
 ```
 
 The Claude Code commands are expected only for Claude Code installs. Use `/project-doc-modes` for init or migration, `/project-doc-modes-sdd` for SDD-RIPER governance, `/project-doc-modes-sync` for hook-safe incremental Reverse Sync, and `/project-doc-modes-verify` for read-only checks.

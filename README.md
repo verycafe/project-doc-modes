@@ -2,6 +2,10 @@
 
 `project-doc-modes` 是一个 Markdown-first 的文档治理 Skill，用来在目标项目中建立可持续的文档结构、版本治理和 SDD-RIPER 工作流。
 
+## 维护文档
+
+本仓库自身的活跃维护文档入口是 `docs/README.md`。当前采用迭代模式，当前版本为 `v0.1`，当前阶段为 `PHASE-1-sdd-knowledge-structure`。
+
 ## 配图
 
 ![project-doc-modes 工作流](assets/project-doc-modes-workflow.svg)
@@ -48,11 +52,16 @@ Claude Code: ${CLAUDE_HOME:-$HOME/.claude}/skills/project-doc-modes
 
 手动安装命令也在 `install.md` 中维护，README 不重复展开，避免安装入口分叉。
 
-安装完成后，运行时 Skill 目录只包含：
+安装完成后，运行时 Skill 目录只包含最小 runtime payload：
 
 ```text
 SKILL.md
+references/init.md
 references/rules.md
+references/sdd.md
+references/structure.md
+references/sync.md
+references/verify.md
 ```
 
 Claude Code 安装还会生成用户级命令包装：
@@ -70,14 +79,21 @@ $CLAUDE_HOME/commands/project-doc-modes-verify.md
 
 ```text
 .gitignore
+.claude-plugin/plugin.json
 install.md
 hooks.md
 README.md
 assets/project-doc-modes-workflow.svg
 project-doc-modes/SKILL.md
+project-doc-modes/references/init.md
 project-doc-modes/references/rules.md
+project-doc-modes/references/sdd.md
+project-doc-modes/references/structure.md
+project-doc-modes/references/sync.md
+project-doc-modes/references/verify.md
 scripts/bind_codex_project_hook.py
 scripts/install_runtime.py
+scripts/verify_repo_integrity.py
 ```
 
 `scripts/bind_codex_project_hook.py` 是 Codex 项目级 Hook 绑定脚本，只负责在目标项目中创建、检查或移除 `.codex/hooks.json` 和 `.codex/hooks/project_doc_modes_stop.py` 的受管绑定。
@@ -214,9 +230,14 @@ Codex 里只有 `/project-doc-modes` 一个 Skill 入口，使用 `init`、`sdd`
     │   ├── STATUS.md
     │   ├── WORKFLOW.md
     │   ├── RELEASES.md
-    │   └── context/
-    │       ├── CODEMAP.md
-    │       └── CONTEXT_BUNDLE.md
+    │   ├── context/
+    │   │   ├── CODEMAP.md
+    │   │   ├── CONTEXT_BUNDLE.md
+    │   │   └── GLOSSARY.md
+    │   ├── research/
+    │   │   └── README.md
+    │   └── experience/
+    │       └── README.md
     └── product/
         ├── CURRENT.md
         └── v0.1/
@@ -235,6 +256,8 @@ Codex 里只有 `/project-doc-modes` 一个 Skill 入口，使用 `init`、`sdd`
 
 复杂迁移时可以临时创建 `docs/governance/context/MIGRATION_NOTES.tmp.md` 记录迁移证据和上下文。它不是默认必建文件，迁移完成后应把长期有效的信息合并回正式文档。
 
+`docs/governance/context/GLOSSARY.md` 是项目词汇表，记录稳定术语和禁止混用的说法。`docs/governance/research/` 放调研、外部资料、参考仓库和证据边界。`docs/governance/experience/` 放用户偏好、操作教训和暂时不适合进入 PRD 的经验知识；当这些内容变成需求、约束或验收标准时，再 Reverse Sync 到 PRD、PHASE、SPEC 或决策记录。
+
 ## 工作流程
 
 1. 安装 Skill 到 Codex 或 Claude Code。
@@ -250,6 +273,14 @@ Codex 里只有 `/project-doc-modes` 一个 Skill 入口，使用 `init`、`sdd`
 
 Hook 绑定默认作用于当前项目。Codex 项目级绑定已预置支持，默认通过 `.codex/hooks.json` 和 `.codex/hooks/project_doc_modes_stop.py` 安装；只有用户明确写 `scope=global` 时，AI 才能改当前工具的全局 Hook 配置；如果当前工具不在 `hooks.md` 的支持矩阵中，不能静默降级成全局绑定。
 
+维护本仓库时，除了 installer 和 hook binder 自测，还可以运行：
+
+```bash
+python3 scripts/verify_repo_integrity.py
+```
+
+它会检查 README、install、hooks、runtime references、installer 和 `.claude-plugin/plugin.json` 的关键契约是否一致。
+
 ## 规范逻辑和约束
 
 - 生成文档默认不进入 Git；除非用户明确要求，否则不得对这些文档执行 `git add`、`git commit` 或 `git push`。
@@ -262,5 +293,7 @@ Hook 绑定默认作用于当前项目。Codex 项目级绑定已预置支持，
 - 如果目标项目已有文档，必须先备份，再阅读、理解、迁移和重写。
 - 文档升级时默认复制当前版本到 `docs/archive/`，然后升级当前文档；不得默认清空 `docs/`。
 - 上一个版本的功能逻辑默认锁定为历史基线，除非用户明确要求修改。
+- 项目词汇表放在 `docs/governance/context/GLOSSARY.md`；调研放在 `docs/governance/research/`；经验沉淀放在 `docs/governance/experience/`，不要强行塞进 PRD。
+- SDD-RIPER 下的可执行 SPEC 应包含 `Validation Loop`，说明用什么测试、脚本、hook inspect 或结构检查证明实现有效。
 - 生成的目标项目文档不得写入 `project-doc-modes`、`/project-doc-modes`、`/project-doc-modes-sdd`、`/project-doc-modes-sync`、`/project-doc-modes-verify`、`/sdd`、`SKILL.md` 或本机安装路径。
 - 复杂迁移可使用 `docs/governance/context/MIGRATION_NOTES.tmp.md` 做临时记录，避免迁移过程中丢失上下文。

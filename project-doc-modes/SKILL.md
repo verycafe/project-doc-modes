@@ -18,6 +18,14 @@ The workflow has three operating modes:
 - `sync`: hook-safe incremental Reverse Sync after the initial documentation system already exists
 - `verify`: read-only structure, entrypoint, local-only, and leakage checks
 
+Use progressive references when a task is mode-specific:
+- `references/structure.md`: target-project layout, glossary, research, experience, local-only rules
+- `references/init.md`: initialization, migration, archive-first behavior, setup questions
+- `references/sync.md`: hook-safe incremental Reverse Sync
+- `references/verify.md`: read-only verification checks
+- `references/sdd.md`: SDD-RIPER stages, human gates, and Validation Loop rules
+- `references/rules.md`: compatibility entrypoint and shared rules
+
 Hook binding is a separate operation from installation and activation. Default hook binding is project-local and targets the current tool; global binding requires the user to explicitly request `scope=global`.
 
 Installation and activation are separate:
@@ -38,6 +46,9 @@ Apply these defaults unless the user explicitly requests a different repository 
 - root Markdown is limited to `AGENTS.md`, `CLAUDE.md`, and `README.md`
 - all other generated Markdown belongs under `docs/`
 - historical material belongs under `docs/archive/`, not root `archive/`
+- project vocabulary belongs in `docs/governance/context/GLOSSARY.md`
+- research notes belong under `docs/governance/research/`
+- reusable experience and lessons belong under `docs/governance/experience/`
 - product requirements, phase plans, and specs must follow the `PRD -> PHASE -> SPEC` chain
 - `AGENTS.md` is the canonical cross-agent governance entrypoint; generated `CLAUDE.md` must bridge Claude Code to `AGENTS.md`
 - never delete, move, rewrite, or refactor user code, configuration, runtime logic, API behavior, dependencies, or tests unless the user explicitly asks for code changes
@@ -45,6 +56,7 @@ Apply these defaults unless the user explicitly requests a different repository 
 - do not stage, commit, or push generated docs
 - keep newly generated docs local-only by default in Git repositories
 - for SDD-RIPER projects, active specs are the source of intended behavior and code execution requires an approved plan
+- for SDD-RIPER projects, each executable SPEC should include a `Validation Loop`
 - generated target-repository docs must be tool-agnostic: never mention this skill, its install path, or its invocation commands
 
 For Git repositories, local-only means:
@@ -72,7 +84,9 @@ Use lowercase `docs/` unless the target repository already has an intentional up
 
 Default current-doc categories:
 - `docs/governance/`: workflow, status, release notes, operating rules, handoff rules
-- `docs/governance/context/`: CodeMap, context bundles, and repo evidence packs
+- `docs/governance/context/`: CodeMap, context bundles, glossary, and repo evidence packs
+- `docs/governance/research/`: external research, official-doc evidence, repository studies, support matrices, and option comparisons
+- `docs/governance/experience/`: reusable lessons, user preferences, operational experience, and valuable knowledge not yet ready for PRD
 - `docs/product/`: current product entrypoint and version folders
 - `docs/product/vX.Y/requirements/`: PRDs, user needs, business requirements, audience docs
 - `docs/product/vX.Y/phases/`: phase index and roadmap only
@@ -96,6 +110,8 @@ Do not put `PRD.md`, phase plans, and `SPEC.md` documents in the same folder. If
 - requirement or product proposal -> `requirements/`
 - phase plan, milestone, roadmap, rollout plan -> `phases/PHASE-*/`
 - phase-level technical contract, API, data model, trace format -> `phases/PHASE-*/specs/`
+
+Do not force research and experience notes into PRD. Move them into PRD, PHASE, SPEC, or decisions only when they become product requirements, durable constraints, acceptance criteria, or governance decisions.
 
 ## When To Use
 
@@ -225,7 +241,7 @@ If code directories exist but are empty:
 - continue scaffolding docs without treating the empty directories as an error
 
 If the target needs team vibe coding, SDD-RIPER, spec-driven execution, AI coding governance, or code-facing workflow gates, read:
-- the SDD-RIPER section in `references/rules.md`
+- `references/sdd.md`
 
 ### 1.5. Ask Before Acting
 
